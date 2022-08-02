@@ -30,10 +30,7 @@ class MetricPlugin:
             'after:invocation': self.after_invocation
         }
 
-        if isinstance(config, MetricConfig):
-            self.config = config
-        else:
-            self.config = MetricConfig()
+        self.config = config if isinstance(config, MetricConfig) else MetricConfig()
 
     def before_invocation(self, execution_context):
         metric_time = time.time() * 1000
@@ -53,7 +50,7 @@ class MetricPlugin:
         }
         # Add application related data
         application_info = self.plugin_context.application_info
-        self.metric_data.update(application_info)
+        self.metric_data |= application_info
         self.system_cpu_total_start, self.system_cpu_usage_start = utils.system_cpu_usage()
         self.process_cpu_usage_start = utils.process_cpu_usage()
 
@@ -87,7 +84,7 @@ class MetricPlugin:
         metrics = {
             'threadCount': active_thread_counts if active_thread_counts is not None else -1
         }
-        thread_metric_data.update(self.metric_data)
+        thread_metric_data |= self.metric_data
         thread_metric_data['metrics'] = metrics
         thread_metric_report = {
             'data': thread_metric_data,
@@ -107,16 +104,11 @@ class MetricPlugin:
             'metricName': 'GCMetric'
         }
 
-        gen = 0
         metrics = {}
-        for metric in gc_metrics:
-            key = 'generation' + str(gen) + 'Collections'
-            if PY2:
-                metrics[key] = metric
-            else:
-                metrics[key] = metric['collections']
-            gen += 1
-        gc_metric_data.update(self.metric_data)
+        for gen, metric in enumerate(gc_metrics):
+            key = f'generation{str(gen)}Collections'
+            metrics[key] = metric if PY2 else metric['collections']
+        gc_metric_data |= self.metric_data
         gc_metric_data['metrics'] = metrics
         gc_metric_report = {
             'data': gc_metric_data,
@@ -136,7 +128,7 @@ class MetricPlugin:
             'app.maxMemory': size,
             'app.usedMemory': used
         }
-        memory_metric_data.update(self.metric_data)
+        memory_metric_data |= self.metric_data
         memory_metric_data['metrics'] = metrics
         memory_metric_report = {
             'data': memory_metric_data,
@@ -156,9 +148,9 @@ class MetricPlugin:
         process_cpu_usage = self.process_cpu_usage_end - self.process_cpu_usage_start
         if system_cpu_total != 0:
             cpu_load = process_cpu_usage / system_cpu_total
-            process_cpu_load = 1 if cpu_load > 1 else cpu_load
+            process_cpu_load = min(cpu_load, 1)
             cpu_load = system_cpu_usage / system_cpu_total
-            system_cpu_load = 1 if cpu_load > 1 else cpu_load
+            system_cpu_load = min(cpu_load, 1)
 
         cpu_metric_data = {
             'id': str(uuid.uuid4()),
@@ -169,7 +161,7 @@ class MetricPlugin:
             'app.cpuLoad': process_cpu_load if process_cpu_load is not None else -1,
             'sys.cpuLoad': system_cpu_load if system_cpu_load is not None else -1
         }
-        cpu_metric_data.update(self.metric_data)
+        cpu_metric_data |= self.metric_data
         cpu_metric_data['metrics'] = metrics
         cpu_metric_report = {
             'data': cpu_metric_data,

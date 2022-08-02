@@ -89,7 +89,7 @@ def trace_calls(frame, event, arg):
         return
 
     _func_name = frame.f_code.co_name
-    if _func_name == 'write' or _func_name == '___thundra_trace___':
+    if _func_name in ['write', '___thundra_trace___']:
         # Ignore write() calls from print statements
         return
 
@@ -183,8 +183,7 @@ class Traceable:
             return value.serialize()
         try:
             pickler = jsonpickle.pickler.Pickler(max_depth=3)
-            value_dict = pickler.flatten(value, reset=True)
-            return value_dict
+            return pickler.flatten(value, reset=True)
         except:
             return '<not-json-serializable-object>'
 
@@ -207,10 +206,11 @@ class Traceable:
                     count = 0
                     for arg in args:
                         function_args_dict = {
-                            'name': 'arg-' + str(count),
+                            'name': f'arg-{str(count)}',
                             'type': type(arg).__name__,
-                            'value': self.__serialize_value__(arg)
+                            'value': self.__serialize_value__(arg),
                         }
+
                         count += 1
                         function_args_list.append(function_args_dict)
                     if kwargs is not None:
@@ -233,7 +233,7 @@ class Traceable:
                             scope.span.set_tag(constants.LineByLineTracingTags['source'], ''.join(source_lines))
                             scope.span.set_tag(constants.LineByLineTracingTags['start_line'], start_line)
                     except Exception as e:
-                        debug_logger("Cannot get source code in traceable: " + str(e))
+                        debug_logger(f"Cannot get source code in traceable: {str(e)}")
                     with _lock:
                         if _line_traced_count == 0:
                             sys.settrace(trace_calls)

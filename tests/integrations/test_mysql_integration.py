@@ -63,7 +63,7 @@ def test_mysql_integration_mask_statement():
         assert mysql_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert mysql_span.get_tag(constants.SpanTags['DB_INSTANCE']) == 'db'
         assert mysql_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
-        assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT']) == None
+        assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT']) is None
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
 
         connection.close()

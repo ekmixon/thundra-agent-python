@@ -34,14 +34,14 @@ class ConfigProvider:
     def traverse_config_object(obj, path):
         if not isinstance(obj, dict):
             if not path.startswith('thundra.agent.'):
-                path = 'thundra.agent.' + path
+                path = f'thundra.agent.{path}'
             path = path.lower()
             prop_type = ConfigProvider.get_config_type(path)
             ConfigProvider.configs[path] = ConfigProvider.parse(obj, prop_type)
         else:
             for prop_name in obj:
                 prop_val = obj.get(prop_name)
-                prop_path = path + '.' + prop_name
+                prop_path = f'{path}.{prop_name}'
                 ConfigProvider.traverse_config_object(prop_val, prop_path)
 
     @staticmethod
@@ -66,15 +66,12 @@ class ConfigProvider:
 
     @staticmethod
     def get_config_type(config_name):
-        config_metadata = CONFIG_METADATA.get(config_name)
-        if config_metadata:
+        if config_metadata := CONFIG_METADATA.get(config_name):
             return config_metadata.get('type')
-        else:
-            if config_name.startswith('thundra.agent.lambda.'):
-                config_name = config_name.replace('thundra.agent.lambda.', 'thundra.agent.', 1)
-                config_metadata = CONFIG_METADATA.get(config_name)
-                if config_metadata:
-                    return config_metadata.get('type')
+        if config_name.startswith('thundra.agent.lambda.'):
+            config_name = config_name.replace('thundra.agent.lambda.', 'thundra.agent.', 1)
+            if config_metadata := CONFIG_METADATA.get(config_name):
+                return config_metadata.get('type')
         return None
 
     @staticmethod

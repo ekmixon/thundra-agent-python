@@ -127,7 +127,9 @@ def test_dynamodb_put_item():
         assert span.get_tag('db.type') == 'aws-dynamodb'
         assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
 
-        assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ["SAVE:" + span.span_id]
+        assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == [
+            f"SAVE:{span.span_id}"
+        ]
 
 
 def test_dynamodb_put_item_resource():
@@ -159,7 +161,9 @@ def test_dynamodb_put_item_resource():
         assert span.get_tag('db.type') == 'aws-dynamodb'
         assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
 
-        assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ["SAVE:" + span.span_id]
+        assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == [
+            f"SAVE:{span.span_id}"
+        ]
 
 
 def test_dynamodb_statement_mask():
@@ -493,7 +497,8 @@ def test_kinesis(mock_actual_call, mock_kinesis_response):
         assert span.get_tag('aws.kinesis.stream.name') == 'STRING_VALUE'
         assert span.get_tag('aws.request.name') == 'PutRecord'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == [
-            region + ':' + 'STRING_VALUE:' + shard_id + ':' + sequence_number]
+            f'{region}:STRING_VALUE:{shard_id}:{sequence_number}'
+        ]
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -503,10 +508,11 @@ def test_firehose(mock_actual_call, mock_firehose_response):
     timestamp = 1553695200
     md5 = "098f6bcd4621d373cade4e832627b4f6"
     links = [
-        region + ":" + "test-stream" + ":" + str(timestamp) + ":" + md5,
-        region + ":" + "test-stream" + ":" + str(timestamp + 1) + ":" + md5,
-        region + ":" + "test-stream" + ":" + str(timestamp + 2) + ":" + md5
+        f"{region}:test-stream:{timestamp}:{md5}",
+        f"{region}:test-stream:{str(timestamp + 1)}:{md5}",
+        f"{region}:test-stream:{str(timestamp + 2)}:{md5}",
     ]
+
     try:
         firehose = boto3.client('firehose', region_name=region)
         firehose.put_record(
@@ -585,7 +591,12 @@ def test_kinesis_get_trace_links_put_record():
     integration.streamName = 'test-stream'
     region = 'eu-west-2'
     links = integration.get_trace_links(region, response)
-    assert links == [region + ':' + 'test-stream' + ':' + response['ShardId'] + ':' + response['SequenceNumber']]
+    assert links == [
+        f'{region}:test-stream:'
+        + response['ShardId']
+        + ':'
+        + response['SequenceNumber']
+    ]
 
 
 def test_kinesis_get_trace_links_put_records():
@@ -604,7 +615,7 @@ def test_kinesis_get_trace_links_put_records():
     integration.streamName = 'test-stream'
     region = 'eu-west-2'
     links = integration.get_trace_links(region, response)
-    assert links == [region + ':' + 'test-stream' + ':' + shard_id + ':' + sequence_number]
+    assert links == [f'{region}:test-stream:{shard_id}:{sequence_number}']
 
 
 def test_firehose_get_trace_links_put_record_batch():
@@ -620,9 +631,9 @@ def test_firehose_get_trace_links_put_record_batch():
     timestamp = 1553695200
     md5 = "4b3a6218bb3e3a7303e8a171a60fcf92"
     assert links == [
-        region + ":" + "test-stream" + ":" + str(timestamp) + ":" + md5,
-        region + ":" + "test-stream" + ":" + str(timestamp + 1) + ":" + md5,
-        region + ":" + "test-stream" + ":" + str(timestamp + 2) + ":" + md5
+        f"{region}:test-stream:{timestamp}:{md5}",
+        f"{region}:test-stream:{str(timestamp + 1)}:{md5}",
+        f"{region}:test-stream:{str(timestamp + 2)}:{md5}",
     ]
 
 
@@ -632,7 +643,7 @@ def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_
 
     database = "test"
     table = "persons"
-    query = "SELECT * FROM %s.%s where age = 10;" % (database, table)
+    query = f"SELECT * FROM {database}.{table} where age = 10;"
     s3_output = 's3://athena-test-bucket/results/'
 
     try:
@@ -669,7 +680,7 @@ def test_athena_statement_masked():
 
     database = "test"
     table = "persons"
-    query = "SELECT * FROM %s.%s where age = 10;" % (database, table)
+    query = f"SELECT * FROM {database}.{table} where age = 10;"
     s3_output = 's3://athena-test-bucket/results/'
 
     try:

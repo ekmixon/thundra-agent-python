@@ -24,20 +24,21 @@ def get_logger(name):
     global loggers
     if loggers.get(name):
         return loggers.get(name)
-    else:
-        format = "%(asctime)s  - %(levelname)s - %(name)s - %(message)s"
-        if name is None:
-            logger = logging.getLogger(__name__)
-        else:
-            logger = logging.getLogger(name)
-        logger.setLevel(logging.DEBUG)
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.DEBUG)
-        ch_format = logging.Formatter(format)
-        console_handler.setFormatter(ch_format)
-        logger.addHandler(console_handler)
-        loggers[name] = logger
-        return logger
+    format = "%(asctime)s  - %(levelname)s - %(name)s - %(message)s"
+    logger = (
+        logging.getLogger(__name__)
+        if name is None
+        else logging.getLogger(name)
+    )
+
+    logger.setLevel(logging.DEBUG)
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    ch_format = logging.Formatter(format)
+    console_handler.setFormatter(ch_format)
+    logger.addHandler(console_handler)
+    loggers[name] = logger
+    return logger
 
 
 def log_to_console(message, handler):

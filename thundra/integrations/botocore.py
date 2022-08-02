@@ -26,10 +26,14 @@ def get_operation_type(class_name, operation_name):
             operation_name in constants.OperationTypeMappings["exclusions"][class_name]:
         return constants.OperationTypeMappings["exclusions"][class_name][operation_name]
 
-    for sre in OPERATION_TYPE_MAPPING_PATTERNS:
-        if sre.match(operation_name):
-            return constants.OperationTypeMappings["patterns"][sre.pattern]
-    return ''
+    return next(
+        (
+            constants.OperationTypeMappings["patterns"][sre.pattern]
+            for sre in OPERATION_TYPE_MAPPING_PATTERNS
+            if sre.match(operation_name)
+        ),
+        '',
+    )
 
 
 class AWSDynamoDBIntegration(BaseIntegration):
@@ -96,8 +100,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
         if scope.span.get_tag(constants.SpanTags['TRACE_LINKS']):
             return
 
-        trace_links = self.get_trace_links(instance, args, response)
-        if trace_links:
+        if trace_links := self.get_trace_links(instance, args, response):
             scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
 
     def get_trace_links(self, instance, args, response):
@@ -128,7 +131,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
             elif operation_name == 'DeleteItem':
                 if ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE) and \
-                        'Attributes' in response:
+                            'Attributes' in response:
                     span_id = response['Attributes'].get("x-thundra-span-id")
                     if span_id and span_id.get('S'):
                         trace_links = ['DELETE:' + span_id.get('S')]
@@ -163,7 +166,15 @@ class AWSDynamoDBIntegration(BaseIntegration):
         for attr in sorted_keys:
             try:
                 key = list(attributes[attr].keys())[0]
-                attributes_sorted.append(attr + '=' + '{' + key + ': ' + str(attributes[attr][key]) + '}')
+                attributes_sorted.append(
+                    f'{attr}='
+                    + '{'
+                    + key
+                    + ': '
+                    + str(attributes[attr][key])
+                    + '}'
+                )
+
             except Exception as e:
                 pass
         return ', '.join(attributes_sorted)
@@ -188,7 +199,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
             else:
                 request_data['Item'] = {'x-thundra-span-id': thundra_span}
 
-            span.set_tag(constants.SpanTags['TRACE_LINKS'], ["SAVE:" + span.span_id])
+            span.set_tag(constants.SpanTags['TRACE_LINKS'], [f"SAVE:{span.span_id}"])
         except:
             pass
 
@@ -213,7 +224,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
             else:
                 request_data['AttributeUpdates'] = {'x-thundra-span-id': thundra_attr}
 
-            span.set_tag(constants.SpanTags['TRACE_LINKS'], ["SAVE:" + span.span_id])
+            span.set_tag(constants.SpanTags['TRACE_LINKS'], [f"SAVE:{span.span_id}"])
         except:
             pass
 
@@ -254,10 +265,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
     def process_batch_write_op(self, scope):
         table_name = list(self.request_data['RequestItems'].keys())[0]
-        items = []
-        for item in self.request_data['RequestItems'][table_name]:
-            items.append(item)
-
+        items = list(self.request_data['RequestItems'][table_name])
         scope.span.set_tag(constants.DBTags['DB_STATEMENT'], items)
 
 
@@ -270,9 +278,7 @@ class AWSSQSIntegration(BaseIntegration):
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
         queue_name = str(self.getQueueName(request_data))
-        if queue_name != '':
-            return queue_name
-        return constants.AWS_SERVICE_REQUEST
+        return queue_name if queue_name != '' else constants.AWS_SERVICE_REQUEST
 
     def getQueueName(self, data):
         if 'QueueUrl' in data:
@@ -307,16 +313,14 @@ class AWSSQSIntegration(BaseIntegration):
                 entries = request_data.get('Entries', None)
                 messages = []
                 if entries:
-                    for entry in entries:
-                        messages.append(entry.get("MessageBody", ""))
+                    messages.extend(entry.get("MessageBody", "") for entry in entries)
                 scope.span.set_tag(constants.AwsSQSTags['MESSAGES'], messages)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSSQSIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
         operation_name = args[0]
 
-        trace_links = self.get_trace_links(operation_name, response)
-        if trace_links:
+        if trace_links := self.get_trace_links(operation_name, response):
             scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
 
     @staticmethod
@@ -327,11 +331,8 @@ class AWSSQSIntegration(BaseIntegration):
 
         elif operation_name == 'SendMessageBatch':
             if len(response['Successful']) > 0:
-                links = []
                 entries = response['Successful']
-                for entry in entries:
-                    links.append(entry['MessageId'])
-                return links
+                return [entry['MessageId'] for entry in entries]
         return None
 
 
@@ -350,11 +351,7 @@ class AWSSNSIntegration(BaseIntegration):
                 'TopicArn',
                 request_data.get('TargetArn', 'N/A')
             )
-            if arn != 'N/A':
-                self.topicName = arn.split(':')[-1]
-            else:
-                self.topicName = ''
-
+            self.topicName = arn.split(':')[-1] if arn != 'N/A' else ''
         return self.topicName
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
@@ -381,8 +378,7 @@ class AWSSNSIntegration(BaseIntegration):
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSSNSIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
-        trace_links = self.get_trace_links(response)
-        if trace_links:
+        if trace_links := self.get_trace_links(response):
             scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
 
     @staticmethod
@@ -405,7 +401,7 @@ class AWSKinesisIntegration(BaseIntegration):
         return request_data.get('StreamName', constants.AWS_SERVICE_REQUEST)
 
     def generate_trace_link(self, region, shard_id, sequence_number):
-        return region + ':' + self.streamName + ':' + shard_id + ':' + sequence_number
+        return f'{region}:{self.streamName}:{shard_id}:{sequence_number}'
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
@@ -434,9 +430,13 @@ class AWSKinesisIntegration(BaseIntegration):
         try:
             if "Records" in response:
                 records = response["Records"]
-                for record in records:
-                    trace_links.append(
-                        self.generate_trace_link(region, record["ShardId"], record["SequenceNumber"]))
+                trace_links.extend(
+                    self.generate_trace_link(
+                        region, record["ShardId"], record["SequenceNumber"]
+                    )
+                    for record in records
+                )
+
             else:
                 trace_links.append(
                     self.generate_trace_link(region, response["ShardId"], response["SequenceNumber"]))
@@ -468,9 +468,10 @@ class AWSFirehoseIntegration(BaseIntegration):
             data = data.encode()
         data_md5 = hashlib.md5(data).hexdigest()
 
-        trace_links = [region + ':' + self.deliveryStreamName + ':' + str(int(timestamp + i)) + ':' + data_md5 for i in
-                       range(3)]
-        return trace_links
+        return [
+            f'{region}:{self.deliveryStreamName}:{int(timestamp + i)}:{data_md5}'
+            for i in range(3)
+        ]
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
@@ -491,8 +492,9 @@ class AWSFirehoseIntegration(BaseIntegration):
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSFirehoseIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
-        trace_links = self.get_trace_links(args, instance.meta.region_name, response)
-        if trace_links:
+        if trace_links := self.get_trace_links(
+            args, instance.meta.region_name, response
+        ):
             scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
 
     def get_trace_links(self, args, region, response):
@@ -547,8 +549,7 @@ class AWSS3Integration(BaseIntegration):
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSS3Integration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
-        trace_links = self.get_trace_links(response)
-        if trace_links:
+        if trace_links := self.get_trace_links(response):
             scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
 
     def get_trace_links(self, response):
@@ -588,7 +589,7 @@ class AWSLambdaIntegration(BaseIntegration):
         }
 
         if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_LAMBDA_PAYLOAD_MASK) and \
-                'Payload' in request_data:
+                    'Payload' in request_data:
             tags[constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = str(request_data['Payload'],
                                                                       encoding='utf-8') if type(
                 request_data['Payload']) is not str else request_data['Payload']
@@ -605,8 +606,7 @@ class AWSLambdaIntegration(BaseIntegration):
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSLambdaIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
-        trace_links = self.get_trace_links(response)
-        if trace_links:
+        if trace_links := self.get_trace_links(response):
             scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
 
     @staticmethod
@@ -630,9 +630,7 @@ class AWSLambdaIntegration(BaseIntegration):
             return {'name': parts[2], 'qualifier': parts[2]}
         if len(parts) == 7:  # arn:aws:lambda:region:accountId:function:funcName
             return {'name': parts[6]}
-        if len(parts) == 8:  # arn:aws:lambda:region:accountId:function:funcName:qualifier
-            return {'name': parts[6], 'qualifier': parts[7]}
-        return {}
+        return {'name': parts[6], 'qualifier': parts[7]} if len(parts) == 8 else {}
 
 
 class AWSServiceIntegration(BaseIntegration):
@@ -665,8 +663,7 @@ class AWSStepFunctionIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
-        state_machine_arn = request_data.get('stateMachineArn')
-        if state_machine_arn:
+        if state_machine_arn := request_data.get('stateMachineArn'):
             return state_machine_arn.split(':')[-1]
         return constants.AWS_SERVICE_REQUEST
 
@@ -750,23 +747,21 @@ class AWSAthenaIntegration(BaseIntegration):
     def get_query_execution_ids(self, args):
         query_execution_ids = None
         if len(args) > 1:
-            params = args[1]
-
-            if params and "QueryExecutionId" in params:
-                query_execution_ids = [params.get("QueryExecutionId")]
-            elif params and "QueryExecutionIds" in params:
-                query_execution_ids = params.get("QueryExecutionIds")
+            if params := args[1]:
+                if "QueryExecutionId" in params:
+                    query_execution_ids = [params.get("QueryExecutionId")]
+                elif "QueryExecutionIds" in params:
+                    query_execution_ids = params.get("QueryExecutionIds")
         return query_execution_ids
 
     def get_named_query_ids(self, args):
         named_query_ids = None
         if len(args) > 1:
-            params = args[1]
-
-            if params and "NamedQueryId" in params:
-                named_query_ids = [params.get("NamedQueryId")]
-            elif params and "NamedQueryIds" in params:
-                named_query_ids = params.get("NamedQueryIds")
+            if params := args[1]:
+                if "NamedQueryId" in params:
+                    named_query_ids = [params.get("NamedQueryId")]
+                elif "NamedQueryIds" in params:
+                    named_query_ids = params.get("NamedQueryIds")
         return named_query_ids
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
@@ -869,18 +864,13 @@ class AWSEventBridgeIntegration(BaseIntegration):
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSEventBridgeIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
-        trace_links = self.get_trace_links(response)
-        if trace_links:
+        if trace_links := self.get_trace_links(response):
             scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
 
     def get_trace_links(self, response):
         try:
             entries = response['Entries']
-            event_ids = []
-            for entry in entries:
-                if entry.get('EventId'):
-                    event_ids.append(entry.get('EventId'))
-            return event_ids
+            return [entry.get('EventId') for entry in entries if entry.get('EventId')]
         except Exception:
             return None
 
@@ -893,7 +883,7 @@ class AWSSESIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         operation_name, request_data = args
-        return operation_name if operation_name else constants.AWS_SERVICE_REQUEST
+        return operation_name or constants.AWS_SERVICE_REQUEST
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args

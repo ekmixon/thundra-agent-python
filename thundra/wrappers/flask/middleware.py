@@ -15,17 +15,17 @@ class ThundraMiddleware(object):
             setattr(request, '_thundra_wrapped', True)
             self._wrapper.before_request(request)
         except Exception as e:
-            logger.error("Error during the before part of Thundra: {}".format(e))
+            logger.error(f"Error during the before part of Thundra: {e}")
 
     def after_request(self, response):
         try:
             self._wrapper.after_request(response)
         except Exception as e:
-            logger.error("Error setting response to context for Thundra: {}".format(e))
+            logger.error(f"Error setting response to context for Thundra: {e}")
         return response
 
     def teardown_request(self, exception):
         try:
             self._wrapper.teardown_request(exception)
         except Exception as e:
-            logger.error("Error during the request teardown of Thundra: {}".format(e))
+            logger.error(f"Error during the request teardown of Thundra: {e}")

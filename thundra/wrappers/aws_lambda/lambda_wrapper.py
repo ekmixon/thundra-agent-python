@@ -107,7 +107,6 @@ class LambdaWrapper(BaseWrapper):
                     self.prepare_and_send_reports(execution_context)
                 except Exception as e_in:
                     logger.error("Error during the after part of Thundra: {}".format(e_in))
-                    pass
                 raise e
             finally:
                 if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE,
@@ -163,7 +162,7 @@ class LambdaWrapper(BaseWrapper):
             start_time = time.time()
             debug_process_running = True
             while time.time() < (start_time + ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX) / 1000) \
-                    and not ptvsd.is_attached():
+                        and not ptvsd.is_attached():
                 if self.debugger_process.poll() is None:
                     ptvsd.wait_for_attach(0.01)
                 else:
@@ -172,14 +171,16 @@ class LambdaWrapper(BaseWrapper):
 
             if not ptvsd.is_attached():
                 if debug_process_running:
-                    logger.error('Couldn\'t complete debugger handshake in {} milliseconds.' \
-                                 .format(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX)))
+                    logger.error(
+                        f"Couldn\'t complete debugger handshake in {ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX)} milliseconds."
+                    )
+
                 ptvsd.tracing(False)
             else:
                 ptvsd.tracing(True)
 
         except Exception as e:
-            logger.error("error while setting tracing true to debugger using ptvsd: {}".format(e))
+            logger.error(f"error while setting tracing true to debugger using ptvsd: {e}")
 
     def stop_debugger_tracing(self):
         try:
@@ -188,16 +189,16 @@ class LambdaWrapper(BaseWrapper):
             from ptvsd.attach_server import debugger_attached
             debugger_attached.clear()
         except Exception as e:
-            logger.error("error while setting tracing false to debugger using ptvsd: {}".format(e))
+            logger.error(f"error while setting tracing false to debugger using ptvsd: {e}")
 
         try:
             if self.debugger_process:
                 o, e = self.debugger_process.communicate(b"fin\n")
-                debug_logger("Thundra debugger process output: {}".format(o.decode("utf-8")))
+                debug_logger(f'Thundra debugger process output: {o.decode("utf-8")}')
                 self.debugger_process = None
         except Exception as e:
             self.debugger_process = None
-            logger.error("error while killing proxy process for debug: {}".format(e))
+            logger.error(f"error while killing proxy process for debug: {e}")
 
     def check_and_handle_warmup_request(self, event):
 
@@ -208,28 +209,26 @@ class LambdaWrapper(BaseWrapper):
             time.sleep(0.1)
             return True
         else:
-            if isinstance(event, str):
-                # Check whether it is warmup request
-                if event.startswith('#warmup'):
-                    delayTime = 90
-                    args = event[len('#warmup'):].strip().split()
-                    # Warmup messages are in '#warmup wait=<waitTime>' format
-                    # Iterate over all warmup arguments
-                    for arg in args:
-                        argParts = arg.split('=')
-                        # Check whether argument is in key=value format
-                        if len(argParts) == 2:
-                            argName = argParts[0]
-                            argValue = argParts[1]
-                            # Check whether argument is "wait" argument
-                            # which specifies extra wait time before returning from request
-                            if argName == 'wait':
-                                waitTime = int(argValue)
-                                delayTime += waitTime
-                    print("Received warmup request as warmup message. " +
-                          "Handling with " + str(delayTime) + " milliseconds delay ...")
-                    time.sleep(delayTime / 1000)
-                    return True
+            if isinstance(event, str) and event.startswith('#warmup'):
+                delayTime = 90
+                args = event[len('#warmup'):].strip().split()
+                # Warmup messages are in '#warmup wait=<waitTime>' format
+                # Iterate over all warmup arguments
+                for arg in args:
+                    argParts = arg.split('=')
+                    # Check whether argument is in key=value format
+                    if len(argParts) == 2:
+                        argName = argParts[0]
+                        argValue = argParts[1]
+                        # Check whether argument is "wait" argument
+                        # which specifies extra wait time before returning from request
+                        if argName == 'wait':
+                            waitTime = int(argValue)
+                            delayTime += waitTime
+                print("Received warmup request as warmup message. " +
+                      "Handling with " + str(delayTime) + " milliseconds delay ...")
+                time.sleep(delayTime / 1000)
+                return True
             return False
 
     def get_timeout_duration(self, context):

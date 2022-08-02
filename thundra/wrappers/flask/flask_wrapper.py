@@ -60,7 +60,7 @@ class FlaskWrapper(BaseWrapper):
                 if response:
                     execution_context.response = response
         except Exception as e:
-            logger.error('Error setting response to context for Thundra: {}'.format(e))
+            logger.error(f'Error setting response to context for Thundra: {e}')
         return response
 
     def teardown_request(self, exception=None):
@@ -71,7 +71,7 @@ class FlaskWrapper(BaseWrapper):
                     execution_context.error = exception
                 self.prepare_and_send_reports_async(execution_context)
         except Exception as e:
-            logger.error('Error during the request teardown of Thundra: {}'.format(e))
+            logger.error(f'Error during the request teardown of Thundra: {e}')
 
     def __call__(self, original_func):
         if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.THUNDRA_DISABLE, False):

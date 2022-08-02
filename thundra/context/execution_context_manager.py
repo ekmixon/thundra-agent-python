@@ -22,6 +22,4 @@ class ExecutionContextManager:
         if not ExecutionContextManager.context_provider:
             return ExecutionContext()
         execution_context = ExecutionContextManager.context_provider.get()
-        if not execution_context:
-            return ExecutionContext()
-        return execution_context
+        return execution_context or ExecutionContext()

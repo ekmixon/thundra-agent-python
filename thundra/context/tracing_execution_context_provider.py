@@ -12,9 +12,7 @@ class TracingExecutionContextProvider(ContextProvider):
         active_span = self.tracer.get_active_span()
         if active_span and hasattr(active_span, 'execution_context'):
             execution_context = active_span.execution_context
-        if not execution_context:
-            return ExecutionContext()
-        return execution_context
+        return execution_context or ExecutionContext()
     
     def set(self, execution_context):
         active_span = self.tracer.get_active_span()

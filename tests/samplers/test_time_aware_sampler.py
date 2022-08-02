@@ -14,7 +14,10 @@ def test_default_time_freq():
 
 def test_freq_from_env():
     time_freq = 37
-    ConfigProvider.set(config_names.THUNDRA_SAMPLER_TIMEAWARE_TIMEFREQ, '{}'.format(time_freq))
+    ConfigProvider.set(
+        config_names.THUNDRA_SAMPLER_TIMEAWARE_TIMEFREQ, f'{time_freq}'
+    )
+
     tams = TimeAwareSampler()
 
     assert tams.time_freq == time_freq

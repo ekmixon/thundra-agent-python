@@ -14,13 +14,11 @@ class InvocationPlugin:
         self.plugin_context = plugin_context
 
     def before_invocation(self, execution_context):
-        executor = self.plugin_context.executor
-        if executor:
+        if executor := self.plugin_context.executor:
             executor.start_invocation(self.plugin_context, execution_context)
 
     def after_invocation(self, execution_context):
-        executor = self.plugin_context.executor
-        if executor:
+        if executor := self.plugin_context.executor:
             executor.finish_invocation(execution_context)
         report_data = {
             'apiKey': self.plugin_context.api_key,

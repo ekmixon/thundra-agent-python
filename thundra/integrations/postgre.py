@@ -29,7 +29,7 @@ class PostgreIntegration(BaseIntegration, RdbBaseIntegration):
         span.class_name = constants.ClassNames['POSTGRESQL']
 
         dsn = parse_dsn(connection.dsn)
-        
+
         query = ''
         operation = ''
         try:

@@ -135,22 +135,23 @@ def test_sqlalchemy_connection_execute_mysql_error():
 
 
 def test_sqlalchemy_connection_execute_sqlite():
-    if not PY2:
-        engine = set_up_engine_and_table('sqlite:///:memory:')
+    if PY2:
+        return
+    engine = set_up_engine_and_table('sqlite:///:memory:')
 
-        query = "SELECT title FROM movies"
-        connection = engine.connect()
-        connection.execute(query)
+    connection = engine.connect()
+    query = "SELECT title FROM movies"
+    connection.execute(query)
 
-        tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+    tracer = ThundraTracer.get_instance()
+    span = tracer.get_spans()[0]
 
-        assert span.domain_name == constants.DomainNames['DB']
-        assert span.class_name == constants.ClassNames['SQLITE']
-        assert span.operation_name == ':memory:'
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == ':memory:'
-        assert span.get_tag(constants.SpanTags['DB_TYPE']) == "sqlite"
-        assert span.get_tag(constants.SpanTags['DB_HOST']) == ''
-        assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
-        assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
+    assert span.domain_name == constants.DomainNames['DB']
+    assert span.class_name == constants.ClassNames['SQLITE']
+    assert span.operation_name == ':memory:'
+    assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+    assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == ':memory:'
+    assert span.get_tag(constants.SpanTags['DB_TYPE']) == "sqlite"
+    assert span.get_tag(constants.SpanTags['DB_HOST']) == ''
+    assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
+    assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'

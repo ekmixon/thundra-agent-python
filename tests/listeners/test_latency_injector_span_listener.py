@@ -12,7 +12,7 @@ def test_delay_amount(mocked_time):
             lsl = LatencyInjectorSpanListener(delay=delay)
 
             lsl.on_span_started(span)
-            
+
             called_delay = (mocked_time.call_args[0][0]) * 1000
 
             assert delay == called_delay
@@ -35,7 +35,7 @@ def test_delay_variaton(mocked_time):
             lsl = LatencyInjectorSpanListener(delay=delay, variation=variation)
 
             lsl.on_span_started(span)
-            
+
             called_delay = (mocked_time.call_args[0][0]) * 1000
 
             assert called_delay <= delay+variation and called_delay >= delay-variation

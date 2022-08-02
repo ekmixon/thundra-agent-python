@@ -34,9 +34,7 @@ class PostgreCursorWrapper(wrapt.ObjectProxy):
     def __enter__(self):
         # raise appropriate error if api not supported (should reach the user)
         value = self.__wrapped__.__enter__()
-        if value is not self.__wrapped__:
-            return value
-        return self
+        return value if value is not self.__wrapped__ else self
 
 
 class PostgreConnectionWrapper(wrapt.ObjectProxy):

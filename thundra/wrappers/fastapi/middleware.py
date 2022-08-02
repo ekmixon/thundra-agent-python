@@ -67,10 +67,16 @@ class ThundraMiddleware(object):
                     try:
                         if not message.get("more_body") or message.get("more_body") == False:
                             execution_context.response = {
-                                "status_code": execution_context.response.get("status"),
-                                "headers": extract_headers(execution_context.response),
-                                "body": execution_context.response.get("body") if execution_context.response.get("body") else None
+                                "status_code": execution_context.response.get(
+                                    "status"
+                                ),
+                                "headers": extract_headers(
+                                    execution_context.response
+                                ),
+                                "body": execution_context.response.get("body")
+                                or None,
                             }
+
                             self._wrapper.after_request(execution_context)
                     except Exception as e:
                         try:
@@ -79,7 +85,8 @@ class ThundraMiddleware(object):
                             logger.error("Error during the after part of Thundra fastapi: {}".format(exc))
             except Exception as e:
                 logger.error("Error during getting res body in fast api: {}".format(e))
-    
+
+
 
         async def wrapped_send(message):
             handle_response(message)
@@ -93,18 +100,20 @@ class ThundraMiddleware(object):
             Args:
                 req (Request): Gathered from asgi receive function
             """
-            if req["type"] == "http.request":
-                try:
-                    if "body" in req:
-                        req_body = req.get("body", b"")
-                        if execution_context.platform_data["request"]["body"]:
-                            execution_context.platform_data["request"]["body"] += req_body
-                        else:
-                            execution_context.platform_data["request"]["body"] = req_body
-                        if not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP, True):
-                            execution_context.root_span.set_tag(constants.HttpTags['BODY'], execution_context.platform_data["request"]["body"])
-                except Exception as e:
-                    logger.error("Error during getting req body in fast api: {}".format(e))
+            if req["type"] != "http.request":
+                return
+            try:
+                if "body" in req:
+                    req_body = req.get("body", b"")
+                    if execution_context.platform_data["request"]["body"]:
+                        execution_context.platform_data["request"]["body"] += req_body
+                    else:
+                        execution_context.platform_data["request"]["body"] = req_body
+                    if not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP, True):
+                        execution_context.root_span.set_tag(constants.HttpTags['BODY'], execution_context.platform_data["request"]["body"])
+            except Exception as e:
+                logger.error("Error during getting req body in fast api: {}".format(e))
+
 
 
         async def wrapped_receive():

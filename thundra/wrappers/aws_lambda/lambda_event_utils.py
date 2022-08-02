@@ -87,7 +87,7 @@ def inject_trigger_tags_for_kinesis(span, original_event):
 
         region = record['awsRegion']
         if "eventID" in record:
-            trace_links.append(region + ':' + stream_name + ':' + record["eventID"])
+            trace_links.append(f'{region}:{stream_name}:' + record["eventID"])
     operation_names = list(set(stream_names))
 
     invocation_trace_support.add_incoming_trace_links(trace_links)
@@ -115,9 +115,13 @@ def inject_trigger_tags_for_firehose(span, original_event):
                     data = base64.b64decode(record["data"])
                     data_md5 = hashlib.md5(data).hexdigest()
 
-                    trace_links.append(region + ':' + stream_name + ':' + str(int(timestamp - 1)) + ':' + data_md5)
-                    trace_links.append(region + ':' + stream_name + ':' + str(int(timestamp)) + ':' + data_md5)
-                    trace_links.append(region + ':' + stream_name + ':' + str(int(timestamp + 1)) + ':' + data_md5)
+                    trace_links.extend(
+                        (
+                            f'{region}:{stream_name}:{int(timestamp - 1)}:{data_md5}',
+                            f'{region}:{stream_name}:{int(timestamp)}:{data_md5}',
+                            f'{region}:{stream_name}:{int(timestamp + 1)}:{data_md5}',
+                        )
+                    )
 
                 except Exception:
                     pass
@@ -140,24 +144,25 @@ def inject_trigger_tags_for_dynamodb(span, original_event):
         region = record['awsRegion']
 
         trace_link_found = False
-        if record['eventName'] == "INSERT" or record['eventName'] == "MODIFY":
+        if record['eventName'] in ["INSERT", "MODIFY"]:
             new_image = record['dynamodb'].get('NewImage')
             if new_image and new_image.get('x-thundra-span-id'):
                 span_id = new_image.get('x-thundra-span-id').get('S')
                 trace_link_found = True
-                trace_links.append("SAVE:" + span_id)
+                trace_links.append(f"SAVE:{span_id}")
 
         elif record['eventName'] == "REMOVE":
             old_image = record['dynamodb'].get('OldImage')
             if old_image and old_image.get('x-thundra-span-id'):
                 span_id = old_image.get('x-thundra-span-id').get('S')
                 trace_link_found = True
-                trace_links.append("DELETE:" + span_id)
+                trace_links.append(f"DELETE:{span_id}")
 
         if not trace_link_found:
-            creation_time = record['dynamodb'].get('ApproximateCreationDateTime')
-            if creation_time:
-                if record['eventName'] == "INSERT" or record['eventName'] == "MODIFY":
+            if creation_time := record['dynamodb'].get(
+                'ApproximateCreationDateTime'
+            ):
+                if record['eventName'] in ["INSERT", "MODIFY"]:
                     add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "SAVE",
                                              record['dynamodb'].get('NewImage'))
                     add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "SAVE",
@@ -182,8 +187,21 @@ def add_dynamodb_trace_links(trace_links, region, table_name, creation_time, ope
 
     if attributes_hash:
         for i in range(3):
-            trace_links.append(region + ':' + table_name + ':' + str(
-                int(timestamp + i)) + ':' + operation_type + ':' + attributes_hash)
+            trace_links.append(
+                (
+                    (
+                        (
+                            (
+                                f'{region}:{table_name}:{int(timestamp + i)}'
+                                + ':'
+                            )
+                            + operation_type
+                        )
+                        + ':'
+                    )
+                    + attributes_hash
+                )
+            )
 
 
 def attributes_to_str(attributes):
@@ -192,7 +210,15 @@ def attributes_to_str(attributes):
     for attr in sorted_keys:
         try:
             key = list(attributes[attr].keys())[0]
-            attributes_sorted.append(attr + '=' + '{' + key + ': ' + str(attributes[attr][key]) + '}')
+            attributes_sorted.append(
+                f'{attr}='
+                + '{'
+                + key
+                + ': '
+                + str(attributes[attr][key])
+                + '}'
+            )
+
         except Exception:
             pass
     return ', '.join(attributes_sorted)
@@ -255,9 +281,10 @@ def inject_trigger_tags_for_s3(span, original_event):
 def inject_trigger_tags_for_cloudwatch_schedule(span, original_event):
     domain_name = constants.DomainNames['SCHEDULE']
     class_name = constants.ClassNames['SCHEDULE']
-    schedule_names = []
-    for resource in original_event['resources']:
-        schedule_names.append(resource.split('/')[-1])
+    schedule_names = [
+        resource.split('/')[-1] for resource in original_event['resources']
+    ]
+
     operation_names = list(set(schedule_names))
 
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
@@ -299,8 +326,7 @@ def inject_trigger_tags_for_api_gateway_proxy(span, original_event):
     class_name = constants.ClassNames['APIGATEWAY']
 
     operation_names = []
-    resource = utils.extract_api_gw_resource_name(original_event)
-    if resource:
+    if resource := utils.extract_api_gw_resource_name(original_event):
         operation_names.append(resource)
         invocation_support.set_application_resource_name(resource)
 
@@ -324,16 +350,18 @@ def inject_trigger_tags_for_api_gateway(span, original_event):
 
 def inject_trigger_tags_for_lambda(span, original_context):
     try:
-        if original_context:
-            if 'client_context' in vars(original_context):
-                if original_context.client_context:
-                    if original_context.client_context.custom:
-                        domain_name = constants.DomainNames['API']
-                        class_name = constants.ClassNames['LAMBDA']
-                        operation_names = [original_context.client_context.custom[constants.TRIGGER_OPERATION_NAME_TAG]]
+        if (
+            original_context
+            and 'client_context' in vars(original_context)
+            and original_context.client_context
+            and original_context.client_context.custom
+        ):
+            domain_name = constants.DomainNames['API']
+            class_name = constants.ClassNames['LAMBDA']
+            operation_names = [original_context.client_context.custom[constants.TRIGGER_OPERATION_NAME_TAG]]
 
-                        inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
-                        inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
+            inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
+            inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
         if 'aws_request_id' in vars(original_context):
             invocation_trace_support.add_incoming_trace_links([original_context.aws_request_id])

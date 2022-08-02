@@ -56,19 +56,18 @@ def process_memory_usage():
                 except IndexError:
                     continue
 
-            size_from_env_var = get_aws_lambda_function_memory_size()
-            if not size_from_env_var:
-                size = int(mems['VmSize'])
-                size_in_bytes = int(size * 1024)
-            else:
+            if size_from_env_var := get_aws_lambda_function_memory_size():
                 size_in_bytes = int(float(size_from_env_var) * 1048576)
 
+            else:
+                size = int(mems['VmSize'])
+                size_in_bytes = int(size * 1024)
             used_mem_in_kb = int(mems['VmRSS']) + int(mems['VmSwap'])
             used_mem_in_bytes = used_mem_in_kb * 1024
 
             return size_in_bytes, used_mem_in_bytes
     except Exception as e:
-        logger.error('ERROR: {}'.format(e))
+        logger.error(f'ERROR: {e}')
         return 0, 0
 
 
@@ -85,7 +84,7 @@ def process_cpu_usage():
             process_cpu_used = int(u_time) + int(s_time)
             return (float(process_cpu_used))
     except Exception as e:
-        logger.error('ERROR: {}'.format(e))
+        logger.error(f'ERROR: {e}')
         return 0
 
 
@@ -99,13 +98,13 @@ def system_cpu_usage():
             for usage in system_cpu_usages.split(' ')[2:]:
                 if count == 5:
                     break
-                elif count != 3 and count != 4:
+                elif count not in [3, 4]:
                     system_cpu_used += int(usage)
                 system_cpu_total += int(usage)
                 count += 1
             return float(system_cpu_total), float(system_cpu_used)
     except Exception as e:
-        logger.error('ERROR: {}'.format(e))
+        logger.error(f'ERROR: {e}')
         return 0, 0
 
 
@@ -117,10 +116,10 @@ def system_cpu_usage():
 class Singleton(object):
     _instances = {}
 
-    def __new__(class_, *args, **kwargs):
-        if class_ not in class_._instances:
-            class_._instances[class_] = super(Singleton, class_).__new__(class_, *args, **kwargs)
-        return class_._instances[class_]
+    def __new__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__new__(cls, *args, **kwargs)
+        return cls._instances[cls]
 
 
 def get_all_env_variables():
@@ -163,11 +162,7 @@ def process_trace_def_var(value):
 
 
 def get_allowed_functions(module):
-    allowed_functions = []
-    for prop in vars(module):
-        # TO DO: differentiate functions
-        allowed_functions.append(str(prop))
-    return allowed_functions
+    return [str(prop) for prop in vars(module)]
 
 
 def is_excluded_url(url):
@@ -187,11 +182,10 @@ def is_excluded_url(url):
 
 def get_default_timeout_margin():
     region = get_env_variable(constants.AWS_REGION, default='')
-    size_from_env_var = get_aws_lambda_function_memory_size()
-    memory = -1
-    if size_from_env_var:
+    if size_from_env_var := get_aws_lambda_function_memory_size():
         memory = int(float(size_from_env_var))
-
+    else:
+        memory = -1
     timeout_margin = 1000
 
     if region == 'us-west-2':
@@ -213,28 +207,27 @@ def parse_x_ray_trace_info():
     if xray_trace_header:
         for trace_header_part in xray_trace_header.split(";"):
             trace_info = trace_header_part.split("=")
-            if len(trace_info) == 2 and trace_info[0] == "Root":
-                xray_info["trace_id"] = trace_info[1]
-            elif len(trace_info) == 2 and trace_info[0] == "Parent":
-                xray_info["segment_id"] = trace_info[1]
+            if len(trace_info) == 2:
+                if trace_info[0] == "Root":
+                    xray_info["trace_id"] = trace_info[1]
+                elif trace_info[0] == "Parent":
+                    xray_info["segment_id"] = trace_info[1]
 
     return xray_info
 
 
 def get_nearest_collector():
-    region = get_env_variable(constants.AWS_REGION)
-
-    if region:
-        return '{}.collector.thundra.io'.format(region)
+    if region := get_env_variable(constants.AWS_REGION):
+        return f'{region}.collector.thundra.io'
 
     return "collector.thundra.io"
 
 
 def get_compiled_operation_type_patterns():
-    compiled = []
-    for pattern in constants.OperationTypeMappings["patterns"]:
-        compiled.append(re.compile(pattern))
-    return compiled
+    return [
+        re.compile(pattern)
+        for pattern in constants.OperationTypeMappings["patterns"]
+    ]
 
 
 def extract_api_gw_resource_name(event):

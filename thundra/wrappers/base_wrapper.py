@@ -45,10 +45,12 @@ class BaseWrapper(ABC):
         self.reporter = Reporter(self.api_key)
         self.debugger_process = None
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INSTRUMENT_DISABLE):
-            if not PY2:
-                from thundra.plugins.trace.patcher import ImportPatcher
-                self.import_patcher = ImportPatcher()
+        if (
+            not ConfigProvider.get(config_names.THUNDRA_TRACE_INSTRUMENT_DISABLE)
+            and not PY2
+        ):
+            from thundra.plugins.trace.patcher import ImportPatcher
+            self.import_patcher = ImportPatcher()
         self.thread_pool_executor = ThreadPoolExecutorWithQueueSizeLimit()
 
     def execute_hook(self, name, data):

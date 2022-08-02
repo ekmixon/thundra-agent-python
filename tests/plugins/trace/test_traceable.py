@@ -4,11 +4,7 @@ from thundra.opentracing.tracer import ThundraTracer
 def test_trace_args(trace_args):
     tracer = ThundraTracer.get_instance()
     nodes = tracer.get_spans()
-    count=0
-    for key in nodes:
-        if key.operation_name == 'func_args':
-            count += 1
-
+    count = sum(key.operation_name == 'func_args' for key in nodes)
     assert count == 0
 
     traceable_trace_args, func_args = trace_args
@@ -45,11 +41,7 @@ def test_trace_args(trace_args):
 def test_trace_return_values(trace_return_val):
     tracer = ThundraTracer.get_instance()
     nodes = tracer.get_spans()
-    count = 0
-    for key in nodes:
-        if key.operation_name == 'func_return_val':
-            count += 1
-
+    count = sum(key.operation_name == 'func_return_val' for key in nodes)
     assert count == 0
 
     traceable_trace_return_val, func_return_val = trace_return_val
@@ -81,11 +73,7 @@ def test_trace_return_values(trace_return_val):
 def test_trace_error(trace_error):
     tracer = ThundraTracer.get_instance()
     nodes = tracer.get_spans()
-    count = 0
-    for key in nodes:
-        if key.operation_name == 'func_with_error':
-            count += 1
-
+    count = sum(key.operation_name == 'func_with_error' for key in nodes)
     assert count == 0
 
     traceable, func_with_error = trace_error
@@ -117,11 +105,7 @@ def test_trace_error(trace_error):
 def test_trace_with_default_configs(trace):
     tracer = ThundraTracer.get_instance()
     nodes = tracer.get_spans()
-    count = 0
-    for key in nodes:
-        if key.operation_name == 'func':
-            count += 1
-
+    count = sum(key.operation_name == 'func' for key in nodes)
     assert count == 0
 
     traceable, func = trace

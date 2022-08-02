@@ -41,8 +41,7 @@ class SecurityAwareSpanListener(ThundraSpanListener):
 
     @staticmethod
     def from_config(config):
-        kwargs = {}
-        kwargs['block'] = config.get('block')
+        kwargs = {'block': config.get('block')}
         whitelist = config.get('whitelist', None)
         blacklist = config.get('blacklist', None)
 
@@ -87,7 +86,7 @@ class Operation:
         self.tags = config.get('tags')
 
     def matches(self, span):
-        matched = self.class_name == span.class_name or self.class_name == '*'
+        matched = self.class_name in [span.class_name, '*']
 
         if matched and isinstance(self.operation_name, list):
             matched = span.operation_name in self.operation_name or '*' in self.operation_name
@@ -95,7 +94,7 @@ class Operation:
         if matched and self.tags:
             for k, v in self.tags.items():
                 if isinstance(v, list):
-                    if not (span.get_tag(k) in v or '*' in v):
+                    if span.get_tag(k) not in v and '*' not in v:
                         matched = False
                         break
                 elif span.get_tag(k) != v:

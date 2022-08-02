@@ -35,20 +35,18 @@ class StandardSpanFilterer(SpanFilterer):
 
         if self.all_mandatory:
             for sf in self.span_filters:
-                if hasattr(sf, 'accept'):
-                    if not sf.accept(span):
-                        return False
-                else:
-                    raise TypeError("{} doesn't have accept method".format(type(sf)))
+                if not hasattr(sf, 'accept'):
+                    raise TypeError(f"{type(sf)} doesn't have accept method")
+                if not sf.accept(span):
+                    return False
             return True
 
         else:
             for sf in self.span_filters:
-                if hasattr(sf, 'accept'):
-                    if sf.accept(span):
-                        return True
-                else:
-                    raise TypeError("{} doesn't have accept method".format(type(sf)))
+                if not hasattr(sf, 'accept'):
+                    raise TypeError(f"{type(sf)} doesn't have accept method")
+                if sf.accept(span):
+                    return True
             return False
 
     def add_filter(self, span_filter):
@@ -84,11 +82,12 @@ class SimpleSpanFilter(SpanFilter):
 
         if accepted and self.tags is not None:
             for k, v in self.tags.items():
-                if isinstance(v, list):
-                    if not (span.get_tag(k) in v):
-                        accepted = False
-                        break
-                elif span.get_tag(k) != v:
+                if (
+                    isinstance(v, list)
+                    and span.get_tag(k) not in v
+                    or not isinstance(v, list)
+                    and span.get_tag(k) != v
+                ):
                     accepted = False
                     break
         if self.reverse:

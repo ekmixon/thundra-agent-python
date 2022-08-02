@@ -7,7 +7,4 @@ class ErrorAwareSampler(BaseSampler):
         pass
 
     def is_sampled(self, span=None):
-        if not span:
-            return False
-
-        return span.get_tag("error")
+        return span.get_tag("error") if span else False

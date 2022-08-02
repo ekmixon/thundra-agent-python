@@ -12,8 +12,7 @@ class ElasticsearchIntegration(BaseIntegration):
 
     def get_hosts(self, instance):
         try:
-            hosts = [con.host for con in instance.connection_pool.connections]
-            return hosts
+            return [con.host for con in instance.connection_pool.connections]
         except Exception:
             return []
 

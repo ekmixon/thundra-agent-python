@@ -20,7 +20,7 @@ class RedisIntegration(BaseIntegration):
         port = connection_kwargs.get('port', '6379')
         command_type = wrapped.__name__.upper() or ""
         operation_type = constants.RedisCommandTypes.get(command_type, '')
-        command = '{} {}'.format(command_type, ' '.join([str(arg) for arg in args]))
+        command = f"{command_type} {' '.join([str(arg) for arg in args])}"
 
         scope.span.domain_name = constants.DomainNames['CACHE']
         scope.span.class_name = constants.ClassNames['REDIS']

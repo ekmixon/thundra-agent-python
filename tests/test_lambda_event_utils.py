@@ -65,16 +65,17 @@ def test_dynamodb_trigger(tracer_and_invocation_support, handler, mock_dynamodb_
     timestamp = 1480642019
 
     links = [
-        region + ':' + table_name + ':' + str(timestamp) + ':' + 'SAVE' + ':' + md5_key,
-        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'SAVE' + ':' + md5_key,
-        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'SAVE' + ':' + md5_key,
-        region + ':' + table_name + ':' + str(timestamp) + ':' + 'SAVE' + ':' + md5_image_1,
-        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'SAVE' + ':' + md5_image_1,
-        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'SAVE' + ':' + md5_image_1,
-        region + ':' + table_name + ':' + str(timestamp) + ':' + 'SAVE' + ':' + md5_image_2,
-        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'SAVE' + ':' + md5_image_2,
-        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'SAVE' + ':' + md5_image_2
+        f'{region}:{table_name}:{timestamp}:SAVE:{md5_key}',
+        f'{region}:{table_name}:{str(timestamp + 1)}:SAVE:{md5_key}',
+        f'{region}:{table_name}:{str(timestamp + 2)}:SAVE:{md5_key}',
+        f'{region}:{table_name}:{timestamp}:SAVE:{md5_image_1}',
+        f'{region}:{table_name}:{str(timestamp + 1)}:SAVE:{md5_image_1}',
+        f'{region}:{table_name}:{str(timestamp + 2)}:SAVE:{md5_image_1}',
+        f'{region}:{table_name}:{timestamp}:SAVE:{md5_image_2}',
+        f'{region}:{table_name}:{str(timestamp + 1)}:SAVE:{md5_image_2}',
+        f'{region}:{table_name}:{str(timestamp + 2)}:SAVE:{md5_image_2}',
     ]
+
 
     assert sorted(invocation_trace_support.get_incoming_trace_links().get('incomingTraceLinks')) == sorted(links)
 
@@ -104,10 +105,11 @@ def test_dynamodb_trigger_delete_event(tracer_and_invocation_support, handler, m
     timestamp = 1480642019
 
     links = [
-        region + ':' + table_name + ':' + str(timestamp) + ':' + 'DELETE' + ':' + md5_key,
-        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'DELETE' + ':' + md5_key,
-        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'DELETE' + ':' + md5_key
+        f'{region}:{table_name}:{timestamp}:DELETE:{md5_key}',
+        f'{region}:{table_name}:{str(timestamp + 1)}:DELETE:{md5_key}',
+        f'{region}:{table_name}:{str(timestamp + 2)}:DELETE:{md5_key}',
     ]
+
     assert sorted(invocation_trace_support.get_incoming_trace_links().get('incomingTraceLinks')) == sorted(links)
 
 

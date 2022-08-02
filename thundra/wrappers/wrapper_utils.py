@@ -53,7 +53,7 @@ def create_invocation_data(plugin_context, execution_context):
 
     # Add application related data
     application_info = plugin_context.application_info
-    invocation_data.update(application_info)
+    invocation_data |= application_info
 
     return invocation_data
 

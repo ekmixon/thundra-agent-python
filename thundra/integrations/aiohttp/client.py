@@ -51,7 +51,7 @@ async def on_request_chunk_sent(session, trace_config_ctx, params):
     scope = trace_config_ctx.scope
     if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_BODY_MASK) and \
             (scope.span.get_tag(constants.HttpTags["BODY"]) is None):
-        body = params.chunk if params.chunk else ""
+        body = params.chunk or ""
         scope.span.set_tag(constants.HttpTags["BODY"], body)
 
 

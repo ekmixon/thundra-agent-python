@@ -12,7 +12,7 @@ for module_name in os.listdir(os.path.dirname(__file__)):
     if filename in IGNORE_MODULES or ext not in PYTHON_EXTENSIONS:
         continue
     try:
-        imported = import_module(".{}".format(filename), __name__)
+        imported = import_module(f".{filename}", __name__)
         MODULES[filename] = imported
     except ImportError:
         traceback.print_exc()

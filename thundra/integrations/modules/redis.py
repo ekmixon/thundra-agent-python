@@ -21,10 +21,6 @@ def patch():
     if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_REDIS_DISABLE):
         for method in map(str.lower, constants.RedisCommandTypes.keys()):
             try:
-                wrapt.wrap_function_wrapper(
-                    'redis.client',
-                    'Redis.' + method,
-                    _wrapper
-                )
+                wrapt.wrap_function_wrapper('redis.client', f'Redis.{method}', _wrapper)
             except:
                 pass

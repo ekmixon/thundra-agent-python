@@ -34,12 +34,15 @@ class TextMapPropagator(Propagator):
             return None
 
         # Extract baggage items
-        baggage = {}
-        for key in carrier:
-            if key.startswith(constants.THUNDRA_BAGGAGE_PREFIX):
-                baggage[key[len(constants.THUNDRA_BAGGAGE_PREFIX):]] = carrier[key]
+        baggage = {
+            key[len(constants.THUNDRA_BAGGAGE_PREFIX) :]: carrier[key]
+            for key in carrier
+            if key.startswith(constants.THUNDRA_BAGGAGE_PREFIX)
+        }
 
-        span_context = ThundraSpanContext(trace_id=trace_id, span_id=span_id, transaction_id=transaction_id,
-                                          baggage=baggage)
-
-        return span_context
+        return ThundraSpanContext(
+            trace_id=trace_id,
+            span_id=span_id,
+            transaction_id=transaction_id,
+            baggage=baggage,
+        )

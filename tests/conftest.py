@@ -74,10 +74,7 @@ def mock_lambda_context():
 
 @pytest.fixture
 def mock_event():
-    event = {
-        'message': 'Hello'
-    }
-    return event
+    return {'message': 'Hello'}
 
 
 @pytest.fixture()
@@ -232,7 +229,7 @@ def mock_sns_response():
 def mock_kinesis_response():
     sequence_number = '49568167373333333333333333333333333333333333333333333333'
     shard_id = 'shardId--000000000000'
-    response = {
+    return {
         'Records': [
             {
                 'SequenceNumber': sequence_number,
@@ -240,54 +237,38 @@ def mock_kinesis_response():
             },
         ],
     }
-    return response
 
 
 @pytest.fixture()
 def mock_firehose_response():
-    response = {
-        "ResponseMetadata":
-            {
-                "HTTPHeaders": {
-                    "date": "Wed, 27 Mar 2019 14:00:00 GMT"
-                }
-            }
+    return {
+        "ResponseMetadata": {
+            "HTTPHeaders": {"date": "Wed, 27 Mar 2019 14:00:00 GMT"}
+        }
     }
-    return response
 
 
 @pytest.fixture()
 def mock_s3_response():
-    response = {
-        "ResponseMetadata":
-            {
-                "HTTPHeaders": {
-                    "x-amz-request-id": "C3D13FE58DE4C810"
-                }
-            }
+    return {
+        "ResponseMetadata": {
+            "HTTPHeaders": {"x-amz-request-id": "C3D13FE58DE4C810"}
+        }
     }
-    return response
 
 
 @pytest.fixture()
 def mock_lambda_response():
-    response = {
-        "ResponseMetadata":
-            {
-                "HTTPHeaders": {
-                    "x-amzn-requestid": "test-request-id"
-                }
-            }
+    return {
+        "ResponseMetadata": {
+            "HTTPHeaders": {"x-amzn-requestid": "test-request-id"}
+        }
     }
-    return response
 
 
 @pytest.fixture()
 def mock_athena_start_query_exec_response():
-    response = {
-        "QueryExecutionId": "98765432-1111-1111-1111-12345678910"
-    }
-    return response
+    return {"QueryExecutionId": "98765432-1111-1111-1111-12345678910"}
 
 
 @pytest.fixture()
@@ -321,24 +302,16 @@ def mock_eventbridge_put_events_response():
 
 @pytest.fixture
 def mock_dynamodb_event():
-    event = {
+    return {
         "Records": [
             {
                 "eventID": "1",
                 "eventVersion": "1.0",
                 "dynamodb": {
-                    "Keys": {
-                        "Id": {
-                            "N": "101"
-                        }
-                    },
+                    "Keys": {"Id": {"N": "101"}},
                     "NewImage": {
-                        "Message": {
-                            "S": "New item!"
-                        },
-                        "Id": {
-                            "N": "101"
-                        }
+                        "Message": {"S": "New item!"},
+                        "Id": {"N": "101"},
                     },
                     "StreamViewType": "NEW_AND_OLD_IMAGES",
                     "SequenceNumber": "111",
@@ -348,109 +321,75 @@ def mock_dynamodb_event():
                 "awsRegion": "eu-west-2",
                 "eventName": "INSERT",
                 "eventSourceARN": "arn:aws:dynamodb:eu-west-2:account-id:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899",
-                "eventSource": "aws:dynamodb"
+                "eventSource": "aws:dynamodb",
             },
             {
                 "eventID": "2",
                 "eventVersion": "1.0",
                 "dynamodb": {
                     "OldImage": {
-                        "Message": {
-                            "S": "New item!"
-                        },
-                        "Id": {
-                            "N": "101"
-                        }
+                        "Message": {"S": "New item!"},
+                        "Id": {"N": "101"},
                     },
                     "SequenceNumber": "222",
-                    "Keys": {
-                        "Id": {
-                            "N": "101"
-                        }
-                    },
+                    "Keys": {"Id": {"N": "101"}},
                     "SizeBytes": 59,
                     "NewImage": {
-                        "Message": {
-                            "S": "This item has changed"
-                        },
-                        "Id": {
-                            "N": "101"
-                        }
+                        "Message": {"S": "This item has changed"},
+                        "Id": {"N": "101"},
                     },
                     "StreamViewType": "NEW_AND_OLD_IMAGES",
                     "ApproximateCreationDateTime": 1480642020,
-
                 },
                 "awsRegion": "eu-west-2",
                 "eventName": "MODIFY",
                 "eventSourceARN": "arn:aws:dynamodb:eu-west-2:account-id:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899",
-                "eventSource": "aws:dynamodb"
-            }
+                "eventSource": "aws:dynamodb",
+            },
         ]
     }
-    return event
 
 
 @pytest.fixture
 def mock_dynamodb_delete_event():
-    event = {
+    return {
         "Records": [
             {
                 "eventID": "1",
                 "eventVersion": "1.0",
                 "dynamodb": {
-                    "Keys": {
-                        "Id": {
-                            "N": "101"
-                        }
-                    },
+                    "Keys": {"Id": {"N": "101"}},
                     "SizeBytes": 38,
                     "SequenceNumber": "333",
                     "OldImage": {
-                        "Message": {
-                            "S": "This item has changed"
-                        },
-                        "Id": {
-                            "N": "101"
-                        }
+                        "Message": {"S": "This item has changed"},
+                        "Id": {"N": "101"},
                     },
                     "StreamViewType": "NEW_AND_OLD_IMAGES",
                     "ApproximateCreationDateTime": 1480642020,
-
                 },
                 "awsRegion": "eu-west-2",
                 "eventName": "REMOVE",
                 "eventSourceARN": "arn:aws:dynamodb:eu-west-2:account-id:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899",
-                "eventSource": "aws:dynamodb"
+                "eventSource": "aws:dynamodb",
             }
         ]
     }
-    return event
 
 
 @pytest.fixture
 def mock_dynamodb_event_trace_injected():
-    event = {
+    return {
         "Records": [
             {
                 "eventID": "1",
                 "eventVersion": "1.0",
                 "dynamodb": {
-                    "Keys": {
-                        "Id": {
-                            "N": "101"
-                        }
-                    },
+                    "Keys": {"Id": {"N": "101"}},
                     "NewImage": {
-                        "Message": {
-                            "S": "New item!"
-                        },
-                        "Id": {
-                            "N": "101"
-                        },
-                        "x-thundra-span-id": {
-                            "S": "test_id1"
-                        }
+                        "Message": {"S": "New item!"},
+                        "Id": {"N": "101"},
+                        "x-thundra-span-id": {"S": "test_id1"},
                     },
                     "StreamViewType": "NEW_AND_OLD_IMAGES",
                     "SequenceNumber": "111",
@@ -460,86 +399,59 @@ def mock_dynamodb_event_trace_injected():
                 "awsRegion": "eu-west-2",
                 "eventName": "INSERT",
                 "eventSourceARN": "arn:aws:dynamodb:eu-west-2:account-id:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899",
-                "eventSource": "aws:dynamodb"
+                "eventSource": "aws:dynamodb",
             },
             {
                 "eventID": "2",
                 "eventVersion": "1.0",
                 "dynamodb": {
                     "OldImage": {
-                        "Message": {
-                            "S": "New item!"
-                        },
-                        "Id": {
-                            "N": "101"
-                        }
+                        "Message": {"S": "New item!"},
+                        "Id": {"N": "101"},
                     },
                     "SequenceNumber": "222",
-                    "Keys": {
-                        "Id": {
-                            "N": "101"
-                        }
-                    },
+                    "Keys": {"Id": {"N": "101"}},
                     "SizeBytes": 59,
                     "NewImage": {
-                        "Message": {
-                            "S": "This item has changed"
-                        },
-                        "Id": {
-                            "N": "101"
-                        },
-                        "x-thundra-span-id": {
-                            "S": "test_id2"
-                        }
+                        "Message": {"S": "This item has changed"},
+                        "Id": {"N": "101"},
+                        "x-thundra-span-id": {"S": "test_id2"},
                     },
                     "StreamViewType": "NEW_AND_OLD_IMAGES",
                     "ApproximateCreationDateTime": 1480642020,
-
                 },
                 "awsRegion": "eu-west-2",
                 "eventName": "MODIFY",
                 "eventSourceARN": "arn:aws:dynamodb:eu-west-2:account-id:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899",
-                "eventSource": "aws:dynamodb"
+                "eventSource": "aws:dynamodb",
             },
             {
                 "eventID": "3",
                 "eventVersion": "1.0",
                 "dynamodb": {
-                    "Keys": {
-                        "Id": {
-                            "N": "101"
-                        }
-                    },
+                    "Keys": {"Id": {"N": "101"}},
                     "SizeBytes": 38,
                     "SequenceNumber": "333",
                     "OldImage": {
-                        "Message": {
-                            "S": "This item has changed!"
-                        },
-                        "Id": {
-                            "N": "101"
-                        },
-                        "x-thundra-span-id": {
-                            "S": "test_id3"
-                        }
+                        "Message": {"S": "This item has changed!"},
+                        "Id": {"N": "101"},
+                        "x-thundra-span-id": {"S": "test_id3"},
                     },
                     "StreamViewType": "NEW_AND_OLD_IMAGES",
                     "ApproximateCreationDateTime": 1480642020,
-
                 },
                 "awsRegion": "eu-west-2",
                 "eventName": "REMOVE",
                 "eventSourceARN": "arn:aws:dynamodb:eu-west-2:account-id:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899",
-                "eventSource": "aws:dynamodb"
-            }
+                "eventSource": "aws:dynamodb",
+            },
         ]
     }
-    return event
 
 
 @pytest.fixture
 def mock_sqs_event():
-    event = {
+    return {
         "Records": [
             {
                 "messageId": "19dd0b57-b21e-4ac1-bd88-01bbb068cb78",
@@ -549,22 +461,21 @@ def mock_sqs_event():
                     "ApproximateReceiveCount": "1",
                     "SentTimestamp": "1523232000000",
                     "SenderId": "123456789012",
-                    "ApproximateFirstReceiveTimestamp": "1523232000001"
+                    "ApproximateFirstReceiveTimestamp": "1523232000001",
                 },
                 "messageAttributes": {},
                 "md5OfBody": "7b270e59b47ff90a553787216d55d91d",
                 "eventSource": "aws:sqs",
                 "eventSourceARN": "arn:aws:sqs:eu-west-2:123456789012:MyQueue",
-                "awsRegion": "eu-west-2"
+                "awsRegion": "eu-west-2",
             }
         ]
     }
-    return event
 
 
 @pytest.fixture
 def mock_sns_event():
-    event = {
+    return {
         "Records": [
             {
                 "EventSource": "aws:sns",
@@ -582,25 +493,21 @@ def mock_sns_event():
                     "SigningCertUrl": "EXAMPLE",
                     "UnsubscribeUrl": "EXAMPLE",
                     "MessageAttributes": {
-                        "Test": {
-                            "Type": "String",
-                            "Value": "TestString"
-                        },
+                        "Test": {"Type": "String", "Value": "TestString"},
                         "TestBinary": {
                             "Type": "Binary",
-                            "Value": "TestBinary"
-                        }
-                    }
-                }
+                            "Value": "TestBinary",
+                        },
+                    },
+                },
             }
         ]
     }
-    return event
 
 
 @pytest.fixture
 def mock_kinesis_event():
-    event = {
+    return {
         "Records": [
             {
                 "kinesis": {
@@ -608,7 +515,7 @@ def mock_kinesis_event():
                     "kinesisSchemaVersion": "1.0",
                     "data": "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0IDEyMy4=",
                     "sequenceNumber": "49545115243490985018280067714973144582180062593244200961",
-                    "approximateArrivalTimestamp": 1428537600
+                    "approximateArrivalTimestamp": 1428537600,
                 },
                 "eventSource": "aws:kinesis",
                 "eventID": "shardId-000000000000:49545115243490985018280067714973144582180062593244200961",
@@ -616,16 +523,15 @@ def mock_kinesis_event():
                 "eventVersion": "1.0",
                 "eventName": "aws:kinesis:record",
                 "eventSourceARN": "arn:aws:kinesis:eu-west-2:123456789012:stream/example_stream",
-                "awsRegion": "eu-west-2"
+                "awsRegion": "eu-west-2",
             }
         ]
     }
-    return event
 
 
 @pytest.fixture
 def mock_cloudwatch_schedule_event():
-    event = {
+    return {
         "id": "cdc73f9d-aea9-11e3-9d5a-835b769c0d9c",
         "detail-type": "Scheduled Event",
         "source": "aws.events",
@@ -635,66 +541,52 @@ def mock_cloudwatch_schedule_event():
         "resources": [
             "arn:aws:events:eu-west-2:123456789012:rule/ExampleRule"
         ],
-        "detail": {}
+        "detail": {},
     }
-    return event
 
 
 @pytest.fixture
 def mock_cloudwatch_logs_event():
-    event = {
+    return {
         "awslogs": {
             "data": "H4sIAAAAAAAAAHWPwQqCQBCGX0Xm7EFtK+smZBEUgXoLCdMhFtKV3akI8d0bLYmibvPPN3wz00CJxmQnTO41whwWQRIctmEcB6sQbFC3CjW3XW8kxpOpP+OC22d1Wml1qZkQGtoMsScxaczKN3plG8zlaHIta5KqWsozoTYw3/djzwhpLwivWFGHGpAFe7DL68JlBUk+l7KSN7tCOEJ4M3/qOI49vMHj+zCKdlFqLaU2ZHV2a4Ct/an0/ivdX8oYc1UVX860fQDQiMdxRQEAAA=="
         }
     }
-    return event
 
 
 @pytest.fixture
 def mock_cloudfront_event():
-    # Modify Response Header
-    event = {
+    return {
         "Records": [
             {
                 "cf": {
-                    "config": {
-                        "distributionId": "EXAMPLE"
-                    },
+                    "config": {"distributionId": "EXAMPLE"},
                     "request": {
                         "uri": "/test",
                         "method": "GET",
                         "clientIp": "2001:cdba::3257:9652",
                         "headers": {
                             "user-agent": [
-                                {
-                                    "key": "User-Agent",
-                                    "value": "Test Agent"
-                                }
+                                {"key": "User-Agent", "value": "Test Agent"}
                             ],
-                            "host": [
-                                {
-                                    "key": "Host",
-                                    "value": "d123.cf.net"
-                                }
-                            ],
+                            "host": [{"key": "Host", "value": "d123.cf.net"}],
                             "cookie": [
                                 {
                                     "key": "Cookie",
-                                    "value": "SomeCookie=1; AnotherOne=A; X-Experiment-Name=B"
+                                    "value": "SomeCookie=1; AnotherOne=A; X-Experiment-Name=B",
                                 }
-                            ]
-                        }
-                    }
+                            ],
+                        },
+                    },
                 }
             }
         ]
     }
-    return event
 
 
 @pytest.fixture
 def mock_firehose_event():
-    event = {
+    return {
         "invocationId": "invocationIdExample",
         "deliveryStreamArn": "arn:aws:kinesis:EXAMPLE/exampleStream",
         "region": "eu-west-2",
@@ -702,30 +594,23 @@ def mock_firehose_event():
             {
                 "recordId": "49546986683135544286507457936321625675700192471156785154",
                 "approximateArrivalTimestamp": 1495072949453,
-                "data": "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0IDEyMy4="
+                "data": "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0IDEyMy4=",
             }
-        ]
+        ],
     }
-    return event
 
 
 @pytest.fixture
 def mock_apigateway_proxy_event():
-    event = {
+    return {
         "body": "eyJ0ZXN0IjoiYm9keSJ9",
         "resource": "/{proxy+}",
         "path": "/path/to/resource",
         "httpMethod": "POST",
         "isBase64Encoded": True,
-        "queryStringParameters": {
-            "foo": "bar"
-        },
-        "pathParameters": {
-            "proxy": "/path/to/resource"
-        },
-        "stageVariables": {
-            "baz": "qux"
-        },
+        "queryStringParameters": {"foo": "bar"},
+        "pathParameters": {"proxy": "/path/to/resource"},
+        "stageVariables": {"baz": "qux"},
         "headers": {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
             "Accept-Encoding": "gzip, deflate, sdch",
@@ -744,7 +629,7 @@ def mock_apigateway_proxy_event():
             "X-Amz-Cf-Id": "cDehVQoZnx43VYQb9j2-nvCh-9z396Uhbp027Y2JvkCPNLmGJHqlaA==",
             "X-Forwarded-For": "127.0.0.1, 127.0.0.2",
             "X-Forwarded-Port": "443",
-            "X-Forwarded-Proto": "https"
+            "X-Forwarded-Proto": "https",
         },
         "requestContext": {
             "accountId": "123456789012",
@@ -764,21 +649,20 @@ def mock_apigateway_proxy_event():
                 "cognitoAuthenticationProvider": None,
                 "userArn": None,
                 "userAgent": "Custom User Agent String",
-                "user": None
+                "user": None,
             },
             "path": "/prod/path/to/resource",
             "resourcePath": "/{proxy+}",
             "httpMethod": "POST",
             "apiId": "1234567890",
-            "protocol": "HTTP/1.1"
-        }
+            "protocol": "HTTP/1.1",
+        },
     }
-    return event
 
 
 @pytest.fixture
 def mock_apigateway_event():
-    event = {
+    return {
         'body-json': {},
         'params': {
             'path': {},
@@ -799,8 +683,8 @@ def mock_apigateway_event():
                 'X-Amz-Cf-Id': '2oERVyfE28F7rylVV0ZOdEBnmogTSblZNOrSON_vGJFBweD1tIM-dg==',
                 'X-Amzn-Trace-Id': 'Root=1-5c3d8b9e-794ee8faf33ffce551c0146b',
                 'X-Forwarded-Port': '443',
-                'X-Forwarded-Proto': 'https'
-            }
+                'X-Forwarded-Proto': 'https',
+            },
         },
         'stage-variables': {},
         'context': {
@@ -821,15 +705,14 @@ def mock_apigateway_event():
             'user-arn': '',
             'request-id': '27eca8d1-1897-11e9-9eed-0d1fbe8bcba6',
             'resource-id': '3ggrja',
-            'resource-path': '/hello'
-        }
+            'resource-path': '/hello',
+        },
     }
-    return event
 
 
 @pytest.fixture
 def mock_s3_event():
-    event = {
+    return {
         "Records": [
             {
                 "eventVersion": "2.0",
@@ -837,42 +720,35 @@ def mock_s3_event():
                 "awsRegion": "eu-west-2",
                 "eventTime": "1970-01-01T00:00:00.000Z",
                 "eventName": "ObjectCreated:Put",
-                "userIdentity": {
-                    "principalId": "EXAMPLE"
-                },
-                "requestParameters": {
-                    "sourceIPAddress": "127.0.0.1"
-                },
+                "userIdentity": {"principalId": "EXAMPLE"},
+                "requestParameters": {"sourceIPAddress": "127.0.0.1"},
                 "responseElements": {
                     "x-amz-request-id": "EXAMPLE123456789",
-                    "x-amz-id-2": "EXAMPLE123/5678abcdefghijklambdaisawesome/mnopqrstuvwxyzABCDEFGH"
+                    "x-amz-id-2": "EXAMPLE123/5678abcdefghijklambdaisawesome/mnopqrstuvwxyzABCDEFGH",
                 },
                 "s3": {
                     "s3SchemaVersion": "1.0",
                     "configurationId": "testConfigRule",
                     "bucket": {
                         "name": "example-bucket",
-                        "ownerIdentity": {
-                            "principalId": "EXAMPLE"
-                        },
-                        "arn": "arn:aws:s3:::example-bucket"
+                        "ownerIdentity": {"principalId": "EXAMPLE"},
+                        "arn": "arn:aws:s3:::example-bucket",
                     },
                     "object": {
                         "key": "test/key",
                         "size": 1024,
                         "eTag": "0123456789abcdef0123456789abcdef",
-                        "sequencer": "0A1B2C3D4E5F678901"
-                    }
-                }
+                        "sequencer": "0A1B2C3D4E5F678901",
+                    },
+                },
             }
         ]
     }
-    return event
 
 
 @pytest.fixture
 def mock_eventbridge_event():
-    event = {
+    return {
         "version": "0",
         "id": "51c0891d-0e34-45b1-83d6-95db273d1602",
         "detail-type": "EC2 Command Status-change Notification",
@@ -880,20 +756,18 @@ def mock_eventbridge_event():
         "account": "123456789012",
         "time": "2020-03-10T21:51:32Z",
         "region": "eu-west-2",
-        "resources": ["arn:aws:ec2:us-east-1:123456789012:instance/i-abcd1111"],
+        "resources": [
+            "arn:aws:ec2:us-east-1:123456789012:instance/i-abcd1111"
+        ],
         "detail": {
             "command-id": "e8d3c0e4-71f7-4491-898f-c9b35bee5f3b",
             "document-name": "AWS-RunPowerShellScript",
             "expire-after": "2020-03-14T22:01:30.049Z",
-            "parameters": {
-                "executionTimeout": ["3600"],
-                "commands": ["date"]
-            },
+            "parameters": {"executionTimeout": ["3600"], "commands": ["date"]},
             "requested-date-time": "2020-03-10T21:51:30.049Z",
-            "status": "Success"
-        }
+            "status": "Success",
+        },
     }
-    return event
 
 
 @pytest.fixture(scope='session', autouse=True)

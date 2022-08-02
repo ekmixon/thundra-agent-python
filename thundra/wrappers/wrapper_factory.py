@@ -8,8 +8,6 @@ class WrapperFactory:
     @staticmethod
     def get_or_create(wrapper_class):
         with WrapperFactory.lock:
-            if wrapper_class in WrapperFactory.wrappers:
-                return WrapperFactory.wrappers[wrapper_class]
-            else:
+            if wrapper_class not in WrapperFactory.wrappers:
                 WrapperFactory.wrappers[wrapper_class] = wrapper_class()
-                return WrapperFactory.wrappers[wrapper_class]
+            return WrapperFactory.wrappers[wrapper_class]

@@ -11,7 +11,10 @@ def test_default_count_freq():
 
 def test_freq_from_env():
     count_freq = 37
-    ConfigProvider.set(config_names.THUNDRA_SAMPLER_COUNTAWARE_COUNTFREQ, '{}'.format(count_freq))
+    ConfigProvider.set(
+        config_names.THUNDRA_SAMPLER_COUNTAWARE_COUNTFREQ, f'{count_freq}'
+    )
+
 
     cams = CountAwareSampler()
 
@@ -24,11 +27,7 @@ def test_count_freq():
     invocation_count = 100
     expected = invocation_count // count_freq
 
-    res = 0
-    for i in range(invocation_count):
-        if cams.is_sampled():
-            res += 1
-
+    res = sum(1 for _ in range(invocation_count) if cams.is_sampled())
     assert res == expected
 
 

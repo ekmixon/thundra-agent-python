@@ -9,19 +9,17 @@ def test_frequency(mocked_span):
         inject_count_freq=3
     )
 
-    for i in range(10):
+    for _ in range(10):
         esl.on_span_finished(mocked_span)
 
     assert esl._counter == 0
 
     err_count = 0
-    for i in range(33):
+    for _ in range(33):
         try:
             esl.on_span_started(mocked_span)
         except Exception:
             err_count += 1
-            pass
-
     assert esl._counter == 33
     assert err_count == 11
 
@@ -39,7 +37,7 @@ def test_err_type_and_message(mocked_span):
         esl.on_span_started(mocked_span)
     except Exception as e:
         error_on_started = e
-    
+
     assert error_on_started is not None
     assert type(error_on_started) is error_type
     assert str(error_on_started) == error_message
@@ -49,7 +47,7 @@ def test_err_type_and_message(mocked_span):
         esl.on_span_finished(mocked_span)
     except Exception as e:
         error_on_finished = e
-    
+
     assert error_on_finished is None
 
 def test_create_from_config():

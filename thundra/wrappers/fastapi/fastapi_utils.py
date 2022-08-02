@@ -8,9 +8,7 @@ def bytes_to_str(value):
     Returns:
         [str]: value if value is str o.w str(value)
     """
-    if isinstance(value, bytes):
-        return value.decode("utf-8")
-    return value
+    return value.decode("utf-8") if isinstance(value, bytes) else value
 
 
 def extract_headers(connection_obj):
@@ -22,7 +20,6 @@ def extract_headers(connection_obj):
     Returns:
         dict: request or response headers dict version
     """
-    headers = connection_obj.get("headers")
-    if headers:
-        return dict((bytes_to_str(k), bytes_to_str(v)) for (k,v) in headers)
+    if headers := connection_obj.get("headers"):
+        return {bytes_to_str(k): bytes_to_str(v) for (k,v) in headers}
     return {}

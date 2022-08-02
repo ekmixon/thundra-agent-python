@@ -35,19 +35,24 @@ debugger_socket = None
 
 def handle_error_message(error):
     if hasattr(error, 'status_code'):
-        print(BROKER_WS_HTTP_ERR_CODE_TO_MSG.get(error.status_code, "Broker connection got error: {}".format(error)),
-              file=sys.stderr)
+        print(
+            BROKER_WS_HTTP_ERR_CODE_TO_MSG.get(
+                error.status_code, f"Broker connection got error: {error}"
+            ),
+            file=sys.stderr,
+        )
+
     else:
-        print("Broker connection got error: {}".format(error), file=sys.stderr)
+        print(f"Broker connection got error: {error}", file=sys.stderr)
 
 
 def handle_close_message(code, message):
     if code is None and message is None:
         print("Thundra debug broker connection is closed")
     elif code:
-        print("Thundra debug broker closed with code:{}".format(code))
+        print(f"Thundra debug broker closed with code:{code}")
     else:
-        print("Thundra debug broker closed with code:{}, message:{}".format(code, message))
+        print(f"Thundra debug broker closed with code:{code}, message:{message}")
 
 
 def on_open(ws):
@@ -82,7 +87,7 @@ def on_message(ws, message):
         else:
             ws.debugger_socket.send(message.encode())
     except Exception as e:
-        print("Error on on_message: {}".format(e))
+        print(f"Error on on_message: {e}")
 
 
 def on_error(ws, error):
@@ -98,30 +103,47 @@ def on_close(ws, code, message):
 def normalize_broker_host(host):
     if host.startswith("wss://") or host.startswith("ws://"):
         return host
-    return "wss://" + host
+    return f"wss://{host}"
 
 
 try:
     debugger_socket = socket.socket()
     debugger_socket.connect(("localhost", int(os.environ.get('DEBUGGER_PORT'))))
     ws = websocket.WebSocketApp(
-        "{}:{}".format(normalize_broker_host(os.environ.get('BROKER_HOST')), os.environ.get('BROKER_PORT')),
+        f"{normalize_broker_host(os.environ.get('BROKER_HOST'))}:{os.environ.get('BROKER_PORT')}",
         header=[
-            "{auth_token_header}: {value}".format(auth_token_header=BROKER_HANDSHAKE_HEADERS.get("AUTH_TOKEN"),
-                                                  value=os.environ.get("AUTH_TOKEN")),
-            "{session_name_header}: {value}".format(session_name_header=BROKER_HANDSHAKE_HEADERS.get("SESSION_NAME"),
-                                                    value=os.environ.get("SESSION_NAME")),
-            "{protocol_ver_header}: {value}".format(protocol_ver_header=BROKER_HANDSHAKE_HEADERS.get("PROTOCOL_VER"),
-                                                    value=PROTOCOL_VER),
-            "{runtime_header}: {value}".format(runtime_header=BROKER_HANDSHAKE_HEADERS.get("RUNTIME"), value="python"),
+            "{auth_token_header}: {value}".format(
+                auth_token_header=BROKER_HANDSHAKE_HEADERS.get("AUTH_TOKEN"),
+                value=os.environ.get("AUTH_TOKEN"),
+            ),
+            "{session_name_header}: {value}".format(
+                session_name_header=BROKER_HANDSHAKE_HEADERS.get(
+                    "SESSION_NAME"
+                ),
+                value=os.environ.get("SESSION_NAME"),
+            ),
+            "{protocol_ver_header}: {value}".format(
+                protocol_ver_header=BROKER_HANDSHAKE_HEADERS.get(
+                    "PROTOCOL_VER"
+                ),
+                value=PROTOCOL_VER,
+            ),
+            "{runtime_header}: {value}".format(
+                runtime_header=BROKER_HANDSHAKE_HEADERS.get("RUNTIME"),
+                value="python",
+            ),
             '{session_timeout_header}: {value}'.format(
-                session_timeout_header=BROKER_HANDSHAKE_HEADERS.get("SESSION_TIMEOUT"),
-                value=os.environ.get("SESSION_TIMEOUT"))
+                session_timeout_header=BROKER_HANDSHAKE_HEADERS.get(
+                    "SESSION_TIMEOUT"
+                ),
+                value=os.environ.get("SESSION_TIMEOUT"),
+            ),
         ],
         on_message=on_message,
         on_close=on_close,
-        on_error=on_error
-        )
+        on_error=on_error,
+    )
+
     ws.debugger_socket = debugger_socket
     ws.on_open = on_open
     ws.run_forever(sockopt=((socket.IPPROTO_TCP, socket.TCP_NODELAY, 1),))

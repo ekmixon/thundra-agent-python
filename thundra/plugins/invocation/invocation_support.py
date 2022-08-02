@@ -13,9 +13,7 @@ def set_many_agent(tags):
 
 def get_agent_tag(key):
     execution_context = ExecutionContextManager.get()
-    if key in execution_context.tags:
-        return execution_context.tags[key]
-    return None
+    return execution_context.tags[key] if key in execution_context.tags else None
 
 
 def get_agent_tags():

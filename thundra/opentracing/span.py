@@ -70,9 +70,7 @@ class ThundraSpan(opentracing.Span):
         return super(ThundraSpan, self).set_tag(key, value)
 
     def get_tag(self, key):
-        if self.tags is not None:
-            return self.tags.get(key)
-        return None
+        return self.tags.get(key) if self.tags is not None else None
 
     def finish(self, f_time=None):
         with self._lock:

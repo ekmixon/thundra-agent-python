@@ -81,16 +81,9 @@ class Resource:
 
 def _resource_id(span, resource_name=None):
     if resource_name:
-        return ('{}${}${}'.format(
-            span.class_name.upper(),
-            resource_name,
-            str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
-        ))
-    return ('{}${}${}'.format(
-        span.class_name.upper(),
-        span.operation_name,
-        str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
-    ))
+        return f"{span.class_name.upper()}${resource_name}${str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))}"
+
+    return f"{span.class_name.upper()}${span.operation_name}${str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))}"
 
 
 def get_resources():
@@ -104,23 +97,21 @@ def get_resources():
                     or span.span_id == root_span_id):
                 continue
 
-            resource_names = span.get_tag(constants.SpanTags['RESOURCE_NAMES'])
-            if resource_names:
+            if resource_names := span.get_tag(
+                constants.SpanTags['RESOURCE_NAMES']
+            ):
                 for resource_name in resource_names:
-                    rid = _resource_id(span, resource_name)
-                    if rid:
-                        if not rid in resources:
+                    if rid := _resource_id(span, resource_name):
+                        if rid in resources:
+                            resources[rid].merge(span)
+                        else:
                             resources[rid] = Resource(span)
                             resources[rid].name = resource_name
-                        else:
-                            resources[rid].merge(span)
-            else:
-                rid = _resource_id(span)
-                if rid:
-                    if not rid in resources:
-                        resources[rid] = Resource(span)
-                    else:
-                        resources[rid].merge(span)
+            elif rid := _resource_id(span):
+                if rid not in resources:
+                    resources[rid] = Resource(span)
+                else:
+                    resources[rid].merge(span)
 
         return {
             'resources': [r.to_dict() for r in resources.values()]
@@ -149,8 +140,7 @@ def get_outgoing_trace_links():
     outgoing_trace_links = []
     outgoing_trace_links.extend(execution_context.outgoing_trace_links)
     for span in spans:
-        links = get_outgoing_trace_link(span)
-        if links:
+        if links := get_outgoing_trace_link(span):
             outgoing_trace_links += links
 
     outgoing_trace_links = list(set(outgoing_trace_links))[:constants.MAX_OUTGOING_TRACE_LINKS]

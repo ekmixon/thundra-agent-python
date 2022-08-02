@@ -136,13 +136,22 @@ class ThundraTracer(opentracing.Tracer):
             _parent_context = references[0].referenced_context
 
         _scope = self.scope_manager.active
-        if _scope is not None and _scope.span is not None and execution_context is None:
-            if hasattr(_scope.span, 'execution_context') and _scope.span.execution_context:
-                execution_context = _scope.span.execution_context
+        if (
+            _scope is not None
+            and _scope.span is not None
+            and execution_context is None
+            and hasattr(_scope.span, 'execution_context')
+            and _scope.span.execution_context
+        ):
+            execution_context = _scope.span.execution_context
 
-        if not ignore_active_span and _parent_context is None:
-            if _scope is not None and _scope.span is not None:
-                _parent_context = _scope.span.context
+        if (
+            not ignore_active_span
+            and _parent_context is None
+            and _scope is not None
+            and _scope.span is not None
+        ):
+            _parent_context = _scope.span.context
 
         _trace_id = trace_id
         _transaction_id = transaction_id
@@ -158,24 +167,21 @@ class ThundraTracer(opentracing.Tracer):
                                       transaction_id=_transaction_id,
                                       span_id=_span_id,
                                       parent_span_id=_parent_span_id)
-        _span = ThundraSpan(self,
-                            operation_name=operation_name,
-                            class_name=class_name,
-                            domain_name=domain_name,
-                            context=_context,
-                            tags=tags,
-                            start_time=start_time,
-                            span_order=_span_order,
-                            execution_context=execution_context)
-
-        return _span
+        return ThundraSpan(
+            self,
+            operation_name=operation_name,
+            class_name=class_name,
+            domain_name=domain_name,
+            context=_context,
+            tags=tags,
+            start_time=start_time,
+            span_order=_span_order,
+            execution_context=execution_context,
+        )
 
     def get_active_span(self):
         scope = self.scope_manager.active
-        if scope is not None:
-            return scope.span
-
-        return None
+        return scope.span if scope is not None else None
 
     def get_span_listeners(self):
         return trace_support.get_span_listeners()

@@ -20,27 +20,19 @@ class TracePlugin:
         }
         self.tracer = ThundraTracer.get_instance()
         self.plugin_context = plugin_context
-        if isinstance(config, TraceConfig):
-            self.config = config
-        else:
-            self.config = TraceConfig()
+        self.config = config if isinstance(config, TraceConfig) else TraceConfig()
 
     def before_invocation(self, execution_context):
-        executor = self.plugin_context.executor
-        if executor:
+        if executor := self.plugin_context.executor:
             executor.start_trace(self.plugin_context, execution_context, self.tracer)
 
     def after_invocation(self, execution_context):
-        executor = self.plugin_context.executor
-        if executor:
+        if executor := self.plugin_context.executor:
             executor.finish_trace(execution_context)
 
         span_stack = execution_context.recorder.get_spans()
 
-        sampled = True
-        if len(span_stack) > 0:
-            sampled = self.check_sampled(span_stack[0])
-
+        sampled = self.check_sampled(span_stack[0]) if len(span_stack) > 0 else True
         span_data_list = []
         for span in span_stack:
             if sampled:
@@ -106,20 +98,18 @@ class TracePlugin:
 
         # Add application related data
         application_info = self.plugin_context.application_info
-        span_data.update(application_info)
+        span_data |= application_info
 
         return span_data
 
     @staticmethod
     def wrap_span(span_data, api_key):
-        report_data = {
+        return {
             'apiKey': api_key,
             'type': 'Span',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
-            'data': span_data
+            'data': span_data,
         }
-
-        return report_data
 
     def check_sampled(self, span):
         sampler = trace_support.get_sampler()

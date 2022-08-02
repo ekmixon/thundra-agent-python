@@ -38,7 +38,7 @@ def test_clear_tags():
     invocation_support.set_many(pairs)
     invocation_support.clear()
 
-    assert all([invocation_support.get_tag(key) is None for key in pairs])
+    assert all(invocation_support.get_tag(key) is None for key in pairs)
 
 
 def test_clear_agent_tags():
@@ -50,7 +50,7 @@ def test_clear_agent_tags():
     invocation_support.set_many_agent(pairs)
     invocation_support.clear()
 
-    assert all([invocation_support.get_agent_tag(key) is None for key in pairs])
+    assert all(invocation_support.get_agent_tag(key) is None for key in pairs)
 
 
 def test_set_error():

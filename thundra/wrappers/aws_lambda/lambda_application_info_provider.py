@@ -37,7 +37,7 @@ class LambdaApplicationInfoProvider(ApplicationInfoProvider):
         if not region:
             region = 'local'
         account_no = 'sam_local' if utils.sam_local_debugging() else utils.get_aws_account_no(arn)
-        function_name = application_name if application_name else utils.get_aws_function_name(arn)
+        function_name = application_name or utils.get_aws_function_name(arn)
         application_id_template = 'aws:lambda:{region}:{account_no}:{function_name}'
 
         return application_id_template.format(region=region, account_no=account_no, function_name=function_name)

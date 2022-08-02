@@ -45,9 +45,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
         raise err
 
     def _able_to_raise(self):
-        if self._increment_and_get_counter() % self.inject_count_freq == 0:
-            return True
-        return False
+        return self._increment_and_get_counter() % self.inject_count_freq == 0
 
     def _increment_and_get_counter(self):
         with self._lock:

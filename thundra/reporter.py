@@ -39,8 +39,9 @@ class Reporter:
 
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'ApiKey ' + self.api_key
+            'Authorization': f'ApiKey {self.api_key}',
         }
+
         rest_composite_data_enabled = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_COMPOSITE_ENABLE, True)
         path = constants.COMPOSITE_DATA_PATH if rest_composite_data_enabled else constants.PATH
 
@@ -57,8 +58,10 @@ class Reporter:
                     try:
                         print(to_json(report, separators=(',', ':')))
                     except TypeError:
-                        logger.error(("Couldn't dump report with type {} to json string, "
-                                      "probably it contains a byte array").format(report.get('type')))
+                        logger.error(
+                            f"Couldn't dump report with type {report.get('type')} to json string, probably it contains a byte array"
+                        )
+
 
             return []
 
@@ -72,7 +75,7 @@ class Reporter:
             responses = [future.result() for future in futures.as_completed(_futures)]
 
         if ConfigProvider.get(config_names.THUNDRA_DEBUG_ENABLE):
-            debug_logger("Thundra API responses: " + str(responses))
+            debug_logger(f"Thundra API responses: {responses}")
         return responses
 
     def send_batch(self, args):
@@ -84,8 +87,7 @@ class Reporter:
         if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE):
             batch_size = ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE)
 
-        batches = [reports[i:i + batch_size] for i in range(0, len(reports), batch_size)]
-        return batches
+        return [reports[i:i + batch_size] for i in range(0, len(reports), batch_size)]
 
     def prepare_report_json(self, reports):
         batches = self.get_report_batches(reports)
@@ -96,9 +98,11 @@ class Reporter:
                 try:
                     report_jsons.append(to_json(report, separators=(',', ':')))
                 except TypeError:
-                    logger.error(("Couldn't dump report with type {} to json string, "
-                                  "probably it contains a byte array").format(report.get('type')))
-            json_string = "[{}]".format(','.join(report_jsons))
+                    logger.error(
+                        f"Couldn't dump report with type {report.get('type')} to json string, probably it contains a byte array"
+                    )
+
+            json_string = f"[{','.join(report_jsons)}]"
             batched_reports.append(json_string)
         return batched_reports
 
@@ -130,9 +134,10 @@ class Reporter:
 
     @staticmethod
     def get_collector_url():
-        use_local = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_LOCAL)
-
-        if use_local:
-            return 'http://' + constants.LOCAL_COLLECTOR_ENDPOINT + '/v1'
-        return ConfigProvider.get(config_names.THUNDRA_REPORT_REST_BASEURL, 'https://' + utils.get_nearest_collector() + '/v1')
+        if use_local := ConfigProvider.get(config_names.THUNDRA_REPORT_REST_LOCAL):
+            return f'http://{constants.LOCAL_COLLECTOR_ENDPOINT}/v1'
+        return ConfigProvider.get(
+            config_names.THUNDRA_REPORT_REST_BASEURL,
+            f'https://{utils.get_nearest_collector()}/v1',
+        )
 

@@ -43,12 +43,11 @@ def _import_exists(module_name):
 
 def _patch_modules():
     for module_name, module in integrations.MODULES.items():
-        if _import_exists(module_name):
-            if hasattr(module, "patch"):
-                try:
-                    module.patch()
-                except Exception as e:
-                    logger.error("Couldn't patch module: %s", e)
+        if _import_exists(module_name) and hasattr(module, "patch"):
+            try:
+                module.patch()
+            except Exception as e:
+                logger.error("Couldn't patch module: %s", e)
 
 
 def configure(options):

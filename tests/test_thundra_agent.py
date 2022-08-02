@@ -18,77 +18,71 @@ def test_if_disable_trace_is_set_to_true():
     thundra = Thundra('api key', disable_trace=True)
 
     for plugin in thundra.plugins:
-        assert not type(plugin) is TracePlugin
+        assert type(plugin) is not TracePlugin
 
 
 def test_if_disable_trace_is_set_to_false():
     thundra = Thundra('api key', disable_trace=False)
 
-    trace_exist = False
-    for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
-            trace_exist = True
+    trace_exist = any(
+        isinstance(plugin, TracePlugin) for plugin in thundra.plugins
+    )
 
-    assert trace_exist is True
+    assert trace_exist
 
 
 def test_if_disable_trace_is_not_set():
     thundra = Thundra('api key')
 
-    trace_exist = False
-    for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
-            trace_exist = True
+    trace_exist = any(
+        isinstance(plugin, TracePlugin) for plugin in thundra.plugins
+    )
 
-    assert trace_exist is True
+    assert trace_exist
 
 
 def test_disable_trace_plugin_from_environment_variable():
     ConfigProvider.set(config_names.THUNDRA_TRACE_DISABLE, 'true')
     thundra = Thundra('api key')
 
-    trace_exist = False
-    for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
-            trace_exist = True
+    trace_exist = any(
+        isinstance(plugin, TracePlugin) for plugin in thundra.plugins
+    )
 
-    assert trace_exist is False
+    assert not trace_exist
 
 
 def test_enable_trace_plugin_from_environment_variable():
     ConfigProvider.set(config_names.THUNDRA_TRACE_DISABLE, 'false')
     thundra = Thundra('api key')
 
-    trace_exist = False
-    for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
-            trace_exist = True
+    trace_exist = any(
+        isinstance(plugin, TracePlugin) for plugin in thundra.plugins
+    )
 
-    assert trace_exist is True
+    assert trace_exist
 
 
 def test_if_disable_trace_plugin_from_environment_variable_is_prior():
     ConfigProvider.set(config_names.THUNDRA_TRACE_DISABLE, 'true')
     thundra = Thundra('api key', disable_trace=False)
 
-    trace_exist = False
-    for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
-            trace_exist = True
+    trace_exist = any(
+        isinstance(plugin, TracePlugin) for plugin in thundra.plugins
+    )
 
-    assert trace_exist is False
+    assert not trace_exist
 
 
 def test_if_enable_trace_plugin_from_environment_variable_is_prior():
     ConfigProvider.set(config_names.THUNDRA_TRACE_DISABLE, 'false')
     thundra = Thundra('api key', disable_trace=True)
 
-    trace_exist = False
-    for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
-            trace_exist = True
+    trace_exist = any(
+        isinstance(plugin, TracePlugin) for plugin in thundra.plugins
+    )
 
-    assert trace_exist is True
+    assert trace_exist
 
 
 @mock.patch('thundra.reporter.Reporter')

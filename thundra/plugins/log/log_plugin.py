@@ -26,11 +26,7 @@ class LogPlugin:
         self.plugin_context = plugin_context
         self.logger = logging.getLogger('STDOUT')
 
-        if isinstance(config, LogConfig):
-            self.config = config
-        else:
-            self.config = LogConfig()
-
+        self.config = config if isinstance(config, LogConfig) else LogConfig()
         with LogPlugin.lock:
             if (not LogPlugin.wrapped) and (
                     not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE)):
@@ -46,10 +42,11 @@ class LogPlugin:
 
         if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE):
             handler = ThundraLogHandler()
-            has_thundra_log_handler = False
-            for log_handlers in self.logger.handlers:
-                if isinstance(log_handlers, ThundraLogHandler):
-                    has_thundra_log_handler = True
+            has_thundra_log_handler = any(
+                isinstance(log_handlers, ThundraLogHandler)
+                for log_handlers in self.logger.handlers
+            )
+
             if not has_thundra_log_handler:
                 self.logger.addHandler(handler)
             self.logger.setLevel(logging.INFO)
@@ -79,7 +76,7 @@ class LogPlugin:
         for log in execution_context.logs:
             # Add application related data
             application_info = self.plugin_context.application_info
-            log_data.update(application_info)
+            log_data |= application_info
             log.update(log_data)
             if self.check_sampled(log):
                 log_report = {

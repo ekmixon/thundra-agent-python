@@ -36,7 +36,7 @@ def test_create_from_config():
     sasl = SecurityAwareSpanListener.from_config(config)
 
     assert sasl.block == True
-    assert sasl.whitelist == None
+    assert sasl.whitelist is None
     assert len(sasl.blacklist) == 2
     op1 = sasl.blacklist[0]
     assert op1.class_name == "HTTP"
@@ -87,8 +87,8 @@ def test_violate():
         sasl.on_span_started(span)
     except Exception as e:
         error_thrown = e
-    
-    assert error_thrown == None
+
+    assert error_thrown is None
     assert span.get_tag(constants.SecurityTags["VIOLATED"]) == True
 
 
@@ -136,7 +136,7 @@ def test_block():
         sasl.on_span_started(span)
     except Exception as e:
         error_thrown = e
-    
+
     assert str(error_thrown) == "Operation was blocked due to security configuration"
     assert span.get_tag(constants.SecurityTags["VIOLATED"]) == True
     assert span.get_tag(constants.SecurityTags["BLOCKED"]) == True
@@ -183,10 +183,10 @@ def test_whitelist():
         sasl.on_span_started(span)
     except Exception as e:
         error_thrown = e
-    
-    assert error_thrown == None
-    assert span.get_tag(constants.SecurityTags["VIOLATED"]) == None
-    assert span.get_tag(constants.SecurityTags["BLOCKED"]) == None
+
+    assert error_thrown is None
+    assert span.get_tag(constants.SecurityTags["VIOLATED"]) is None
+    assert span.get_tag(constants.SecurityTags["BLOCKED"]) is None
 
     # Test span out of whitelist
     tracer = ThundraTracer.get_instance()
@@ -199,7 +199,7 @@ def test_whitelist():
         sasl.on_span_started(span)
     except Exception as e:
         error_thrown = e
-    
+
     assert str(error_thrown) == "Operation was blocked due to security configuration"
     assert span.get_tag(constants.SecurityTags["VIOLATED"]) == True
     assert span.get_tag(constants.SecurityTags["BLOCKED"]) == True
@@ -239,5 +239,5 @@ def test_operation_name():
     except Exception as e:
         error_thrown = e
 
-    assert error_thrown == None
+    assert error_thrown is None
     assert span.get_tag(constants.SecurityTags["VIOLATED"]) == True

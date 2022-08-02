@@ -77,7 +77,7 @@ def inject_trigger_tags(span, original_event, original_context):
         elif lambda_event_type == lambda_event_utils.LambdaEventType.EventBridge:
             lambda_event_utils.inject_trigger_tags_for_eventbridge(span, original_event)
     except Exception as e:
-        debug_logger("Cannot inject trigger tags. " + str(e))
+        debug_logger(f"Cannot inject trigger tags. {str(e)}")
 
 
 def finish_trace(execution_context):
@@ -93,20 +93,26 @@ def finish_trace(execution_context):
 
     trigger_class_name = root_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME'])
 
-    # Disable request data sending for cloudwatchlog, firehose and kinesis if not
-    # enabled by configuration because requests can get too big for these
-    enable_request_data = True
-    if (
-            trigger_class_name == constants.ClassNames['CLOUDWATCHLOG'] and
-            not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE)) or (
-
-            trigger_class_name == constants.ClassNames['FIREHOSE'] and
-            not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE)) or (
-
-            trigger_class_name == constants.ClassNames['KINESIS'] and
-            not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE)
-    ):
-        enable_request_data = False
+    enable_request_data = bool(
+        (
+            trigger_class_name != constants.ClassNames['CLOUDWATCHLOG']
+            or ConfigProvider.get(
+                config_names.THUNDRA_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE
+            )
+        )
+        and (
+            trigger_class_name != constants.ClassNames['FIREHOSE']
+            or ConfigProvider.get(
+                config_names.THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE
+            )
+        )
+        and (
+            trigger_class_name != constants.ClassNames['KINESIS']
+            or ConfigProvider.get(
+                config_names.THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE
+            )
+        )
+    )
 
     # ADDING TAGS #
     if (not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP)) and enable_request_data:
@@ -124,8 +130,9 @@ def process_api_gw_response(execution_context):
             response = execution_context.response
             if not response.get('headers'):
                 response['headers'] = {}
-            resource_path = utils.extract_api_gw_resource_name(execution_context.platform_data['originalEvent'])
-            if resource_path:
+            if resource_path := utils.extract_api_gw_resource_name(
+                execution_context.platform_data['originalEvent']
+            ):
                 response['headers'][constants.TRIGGER_RESOURCE_NAME_TAG] = resource_path
     except:
         pass
@@ -150,10 +157,7 @@ def inject_step_function_info(execution_context, outgoing_trace_links):
         event = execution_context.platform_data['originalEvent']
         if ConfigProvider.get(config_names.THUNDRA_LAMBDA_AWS_STEPFUNCTIONS):
             trace_link = str(uuid.uuid4())
-            step = 0
-            if '_thundra' in event:
-                step = event['_thundra']['step']
-
+            step = event['_thundra']['step'] if '_thundra' in event else 0
             if isinstance(response, dict):
                 response['_thundra'] = {
                     'trace_link': trace_link,
@@ -193,7 +197,10 @@ def finish_invocation(execution_context):
     invocation_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
     invocation_data['tags']['aws.lambda.arn'] = arn
     invocation_data['tags']['aws.account_no'] = utils.get_aws_account_no(arn)
-    invocation_data['tags']['aws.lambda.memory_limit'] = int(getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, 0))
+    invocation_data['tags']['aws.lambda.memory_limit'] = getattr(
+        context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, 0
+    )
+
     invocation_data['tags']['aws.lambda.log_group_name'] = getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None)
     invocation_data['tags']['aws.lambda.log_stream_name'] = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
     invocation_data['tags']['aws.lambda.invocation.coldstart'] = invocation_data['coldStart']

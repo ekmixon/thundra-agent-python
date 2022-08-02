@@ -18,7 +18,7 @@ class ThundraMiddleware(object):
             self._wrapper.before_request(request)
             before_done = True
         except Exception as e:
-            logger.error("Error during the before part of Thundra: {}".format(e))
+            logger.error(f"Error during the before part of Thundra: {e}")
 
         response = self.get_response(request)
 
@@ -28,7 +28,7 @@ class ThundraMiddleware(object):
             try:
                 self._wrapper.after_request(response)
             except Exception as e:
-                logger.error("Error during the after part of Thundra: {}".format(e))
+                logger.error(f"Error during the after part of Thundra: {e}")
 
         return response
 

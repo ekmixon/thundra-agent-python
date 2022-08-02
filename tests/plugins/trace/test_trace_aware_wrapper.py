@@ -71,10 +71,7 @@ def square_number(n):
 
 @Traceable(trace_args=True, trace_return_value=True)
 def calculate_in_parallel(numbers):
-    result = []
-    for number in numbers:
-        result.append(square_number(number))
-    return result
+    return [square_number(number) for number in numbers]
 
 
 @Traceable(trace_args=True, trace_return_value=True)

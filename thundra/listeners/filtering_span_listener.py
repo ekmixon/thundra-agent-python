@@ -41,8 +41,7 @@ class FilteringSpanListener(ThundraSpanListener):
         if not config.get('filters'):
             return StandardSpanFilterer(span_filters=[], all_mandatory=is_all)
         for filter_config in config.get('filters'):
-            composite = filter_config.get('composite')
-            if composite:
+            if composite := filter_config.get('composite'):
                 composite_filter = CompositeSpanFilter(is_all=filter_config.get('all', False))
                 filters = FilteringSpanListener._get_span_filters_from_config(filter_config)
                 composite_filter.set_filters(filters)
@@ -55,7 +54,7 @@ class FilteringSpanListener(ThundraSpanListener):
                     filter_config.get('tags'),
                     filter_config.get('reverse')
                 ))
-        
+
         return span_filters
 
     @staticmethod

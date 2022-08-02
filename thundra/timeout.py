@@ -46,7 +46,4 @@ class SignalTimeout(object):
             self.handler(self.execution_context)
 
 
-if sys.platform == "win32":
-    Timeout = ThreadTimeout
-else:
-    Timeout = SignalTimeout
+Timeout = ThreadTimeout if sys.platform == "win32" else SignalTimeout

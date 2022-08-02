@@ -17,7 +17,7 @@ def test_tag():
     tracer = ThundraTracer.get_instance()
     with tracer.start_active_span(operation_name='operation name', finish_on_close=True) as scope:
         span = scope.span
-        assert bool(span.tags) == False
+        assert not bool(span.tags)
 
         span.set_tag('tag', 'test')
         tag = span.get_tag('tag')
@@ -65,7 +65,7 @@ def test_baggage_item():
     tracer = ThundraTracer.get_instance()
     with tracer.start_active_span(operation_name='operation name', finish_on_close=True) as scope:
         span = scope.span
-        assert bool(span.context.baggage) == False
+        assert not bool(span.context.baggage)
 
         span.set_baggage_item('baggage', 'item')
         assert span.get_baggage_item('baggage') == 'item'

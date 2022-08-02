@@ -44,7 +44,7 @@ class RequestsIntegration(BaseIntegration):
         span.tags = tags
 
         if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_BODY_MASK):
-            body = prepared_request.body if prepared_request.body else ""
+            body = prepared_request.body or ""
             scope.span.set_tag(constants.HttpTags["BODY"], body)
 
         try:
